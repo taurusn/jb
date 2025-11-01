@@ -48,8 +48,12 @@ UPLOAD_DIR="public/uploads"
 ### **Option 1: Vercel (Recommended)**
 1. Push to GitHub repository
 2. Connect Vercel to your GitHub repo
-3. Add environment variables in Vercel dashboard
-4. Deploy automatically
+3. Add environment variables in Vercel dashboard:
+   - `DATABASE_URL` - Your PostgreSQL connection string
+   - `JWT_SECRET` - Generate with: `openssl rand -base64 32`
+   - `NEXTAUTH_SECRET` - Generate with: `openssl rand -base64 32`
+   - `NEXTAUTH_URL` - Your Vercel domain (set after first deployment)
+4. Deploy automatically - database will be initialized automatically during build
 
 ### **Option 2: Railway**
 1. Connect Railway to your GitHub repo

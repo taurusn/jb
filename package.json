@@ -4,9 +4,13 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "npm run deploy:db && next build",
+    "build:vercel": "prisma generate && prisma migrate deploy && npm run seed:check && next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "deploy:db": "node scripts/deploy-db.js",
+    "seed:check": "node scripts/check-and-seed.js",
+    "postinstall": "prisma generate"
   },
   "prisma": {
     "seed": "ts-node --compiler-options {\"module\":\"CommonJS\"} prisma/seed.ts"
