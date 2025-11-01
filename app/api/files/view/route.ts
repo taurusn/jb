@@ -77,6 +77,18 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    console.log('🔍 File view request for:', fileParam);
+
+    // Check if this is a Cloudinary URL (external URL)
+    if (fileParam.startsWith('https://res.cloudinary.com/')) {
+      console.log('☁️ Cloudinary URL detected, redirecting...');
+      // For Cloudinary URLs, we can redirect directly since they're already secure
+      return NextResponse.redirect(fileParam);
+    }
+
+    // Handle local files (development)
+    console.log('💾 Local file detected, serving from filesystem...');
+    
     // Security: Validate file path to prevent directory traversal
     const safePath = fileParam.replace(/\.\./g, '').replace(/\/\//g, '/');
     
@@ -87,6 +99,7 @@ export async function GET(request: NextRequest) {
     // Ensure the file is within the uploads directory
     const uploadsDir = path.join(process.cwd(), 'public/uploads');
     if (!fullPath.startsWith(uploadsDir)) {
+      console.log('❌ File outside uploads directory:', fullPath);
       return NextResponse.json(
         { success: false, error: 'Access forbidden' },
         { status: 403 }
@@ -95,6 +108,7 @@ export async function GET(request: NextRequest) {
 
     // Check if file exists
     if (!existsSync(fullPath)) {
+      console.log('❌ File not found:', fullPath);
       return NextResponse.json(
         { success: false, error: 'File not found' },
         { status: 404 }
@@ -105,6 +119,8 @@ export async function GET(request: NextRequest) {
     const fileBuffer = await readFile(fullPath);
     const fileName = path.basename(fullPath);
     const fileExt = path.extname(fileName).toLowerCase();
+
+    console.log('✅ Serving local file:', fileName);
 
     // Determine content type
     let contentType = 'application/octet-stream';

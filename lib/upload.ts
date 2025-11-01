@@ -1,9 +1,19 @@
 import { writeFile, mkdir } from 'fs/promises';
 import path from 'path';
 import { existsSync } from 'fs';
+import { uploadToCloudinary } from './cloudinary';
 
 const UPLOAD_DIR = process.env.UPLOAD_DIR || 'public/uploads';
 const MAX_FILE_SIZE = parseInt(process.env.MAX_FILE_SIZE || '5242880'); // 5MB default
+
+// Check if we're in production (Vercel) and have Cloudinary configured
+const isProduction = process.env.NODE_ENV === 'production';
+const hasCloudinary = !!(
+  process.env.CLOUDINARY_CLOUD_NAME &&
+  process.env.CLOUDINARY_API_KEY &&
+  process.env.CLOUDINARY_API_SECRET
+);
+const useCloudinary = isProduction && hasCloudinary;
 
 export interface UploadResult {
   success: boolean;
@@ -59,7 +69,7 @@ function validateFile(file: File, type: 'image' | 'document'): { valid: boolean;
 }
 
 /**
- * Upload file to local storage
+ * Upload file (automatically chooses Cloudinary for production or local for development)
  */
 export async function uploadFile(
   file: File,
@@ -73,6 +83,29 @@ export async function uploadFile(
       return { success: false, error: validation.error };
     }
 
+    console.log(`📁 Upload strategy: ${useCloudinary ? 'Cloudinary (production)' : 'Local storage (development)'}`);
+
+    // Use Cloudinary in production if configured
+    if (useCloudinary) {
+      console.log('☁️ Uploading to Cloudinary...');
+      const cloudFolder = `job-platform/${subfolder || type}`;
+      const result = await uploadToCloudinary(file, cloudFolder);
+      
+      if (result.success && result.url) {
+        console.log('✅ Cloudinary upload successful:', result.url);
+        return {
+          success: true,
+          url: result.url,
+        };
+      } else {
+        console.error('❌ Cloudinary upload failed:', result.error);
+        return { success: false, error: result.error || 'Cloudinary upload failed' };
+      }
+    }
+
+    // Fall back to local storage (development)
+    console.log('💾 Using local storage...');
+    
     // Create upload directory if it doesn't exist
     const uploadPath = path.join(process.cwd(), UPLOAD_DIR, subfolder);
     if (!existsSync(uploadPath)) {
@@ -91,6 +124,7 @@ export async function uploadFile(
     // Return public URL
     const publicUrl = `/${UPLOAD_DIR}/${subfolder ? subfolder + '/' : ''}${filename}`;
 
+    console.log('✅ Local upload successful:', publicUrl);
     return {
       success: true,
       url: publicUrl,
