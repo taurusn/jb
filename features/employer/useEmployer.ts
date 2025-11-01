@@ -6,15 +6,18 @@ import { apiClient } from '@/lib/apiClient';
 export interface Applicant {
   id: string;
   fullName: string;
-  email: string;
   phone: string;
+  email: string | null;
+  city: string;
+  education: string;
+  skills: string;
   experience: string;
-  position: string;
-  cvPath: string;
-  submittedAt: string;
+  resumeUrl: string | null;
+  profilePictureUrl: string | null;
+  submittedAt: Date;
   requestStatus?: string;
   requestId?: string;
-  requestedAt?: string;
+  requestedAt?: Date;
 }
 
 export interface EmployerStats {
