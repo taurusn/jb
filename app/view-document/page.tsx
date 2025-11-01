@@ -1,10 +1,10 @@
 'use client';
 
 import { useSearchParams, useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { Button } from '@/components';
 
-export default function ViewDocumentPage() {
+function ViewDocumentContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [loading, setLoading] = useState(true);
@@ -124,5 +124,24 @@ export default function ViewDocumentPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+function LoadingFallback() {
+  return (
+    <div className="min-h-screen bg-brand-dark flex items-center justify-center">
+      <div className="text-center">
+        <div className="w-12 h-12 border-4 border-brand-yellow border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+        <p className="text-brand-light">Loading document...</p>
+      </div>
+    </div>
+  );
+}
+
+export default function ViewDocumentPage() {
+  return (
+    <Suspense fallback={<LoadingFallback />}>
+      <ViewDocumentContent />
+    </Suspense>
   );
 }
