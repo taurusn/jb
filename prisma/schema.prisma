@@ -1,0 +1,105 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// USER MODEL (For Employer Authentication)
+// ============================================
+model User {
+  id            String          @id @default(uuid())
+  email         String          @unique
+  passwordHash  String          @map("password_hash")
+  role          Role            @default(EMPLOYER)
+  createdAt     DateTime        @default(now()) @map("created_at")
+  updatedAt     DateTime        @updatedAt @map("updated_at")
+  
+  // Relations
+  employerProfile EmployerProfile?
+
+  @@map("users")
+}
+
+// ============================================
+// EMPLOYER PROFILE MODEL
+// ============================================
+model EmployerProfile {
+  id              String   @id @default(uuid())
+  userId          String   @unique @map("user_id")
+  companyName     String   @map("company_name")
+  contactPerson   String   @map("contact_person")
+  companyWebsite  String?  @map("company_website")
+  phone           String
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+  
+  // Relations
+  user            User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  employeeRequests EmployeeRequest[]
+
+  @@map("employer_profiles")
+}
+
+// ============================================
+// EMPLOYEE APPLICATION MODEL
+// ============================================
+model EmployeeApplication {
+  id                  String   @id @default(uuid())
+  fullName            String   @map("full_name")
+  phone               String
+  email               String?
+  city                String
+  education           String
+  skills              String   @db.Text
+  experience          String   @db.Text
+  resumeUrl           String?  @map("resume_url")
+  profilePictureUrl   String?  @map("profile_picture_url")
+  submittedAt         DateTime @default(now()) @map("submitted_at")
+  
+  // Relations
+  employeeRequests    EmployeeRequest[]
+
+  @@map("employee_applications")
+}
+
+// ============================================
+// EMPLOYEE REQUEST MODEL (Employer demands)
+// ============================================
+model EmployeeRequest {
+  id          String                @id @default(uuid())
+  employeeId  String                @map("employee_id")
+  employerId  String                @map("employer_id")
+  status      EmployeeRequestStatus @default(PENDING)
+  notes       String?               @db.Text
+  requestedAt DateTime              @default(now()) @map("requested_at")
+  updatedAt   DateTime              @updatedAt @map("updated_at")
+  
+  // Relations
+  employee    EmployeeApplication   @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  employer    EmployerProfile       @relation(fields: [employerId], references: [id], onDelete: Cascade)
+
+  // Unique constraint: prevents duplicate requests
+  @@unique([employeeId, employerId])
+  @@map("employee_requests")
+}
+
+// ============================================
+// ENUMS
+// ============================================
+enum Role {
+  EMPLOYER
+  ADMIN
+}
+
+enum EmployeeRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
