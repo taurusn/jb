@@ -6,14 +6,13 @@ import { uploadToCloudinary } from './cloudinary';
 const UPLOAD_DIR = process.env.UPLOAD_DIR || 'public/uploads';
 const MAX_FILE_SIZE = parseInt(process.env.MAX_FILE_SIZE || '5242880'); // 5MB default
 
-// Check if we're in production (Vercel) and have Cloudinary configured
-const isProduction = process.env.NODE_ENV === 'production';
+// Check if Cloudinary is configured (use it in both dev and production when available)
 const hasCloudinary = !!(
   process.env.CLOUDINARY_CLOUD_NAME &&
   process.env.CLOUDINARY_API_KEY &&
   process.env.CLOUDINARY_API_SECRET
 );
-const useCloudinary = isProduction && hasCloudinary;
+const useCloudinary = hasCloudinary;
 
 export interface UploadResult {
   success: boolean;
@@ -69,7 +68,7 @@ function validateFile(file: File, type: 'image' | 'document'): { valid: boolean;
 }
 
 /**
- * Upload file (automatically chooses Cloudinary for production or local for development)
+ * Upload file (automatically uses Cloudinary if configured, otherwise uses local storage)
  */
 export async function uploadFile(
   file: File,
@@ -83,9 +82,9 @@ export async function uploadFile(
       return { success: false, error: validation.error };
     }
 
-    console.log(`📁 Upload strategy: ${useCloudinary ? 'Cloudinary (production)' : 'Local storage (development)'}`);
+    console.log(`📁 Upload strategy: ${useCloudinary ? 'Cloudinary (cloud storage)' : 'Local storage (filesystem)'}`);
 
-    // Use Cloudinary in production if configured
+    // Use Cloudinary if configured
     if (useCloudinary) {
       console.log('☁️ Uploading to Cloudinary...');
       const cloudFolder = `job-platform/${subfolder || type}`;
@@ -103,7 +102,7 @@ export async function uploadFile(
       }
     }
 
-    // Fall back to local storage (development)
+    // Use local storage (when Cloudinary is not configured)
     console.log('💾 Using local storage...');
     
     // Create upload directory if it doesn't exist
