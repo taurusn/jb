@@ -5,6 +5,7 @@ cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
+  secure: true,
 });
 
 export interface CloudinaryUploadResult {
@@ -12,6 +13,32 @@ export interface CloudinaryUploadResult {
   url?: string;
   public_id?: string;
   error?: string;
+}
+
+/**
+ * Generate a signed URL for a Cloudinary resource
+ * This is needed for PDFs and other raw files that may have access restrictions
+ */
+export function getSignedUrl(publicId: string, resourceType: string = 'raw'): string {
+  try {
+    // Generate a signed URL that's valid for 1 hour
+    const signedUrl = cloudinary.url(publicId, {
+      resource_type: resourceType,
+      type: 'upload',
+      sign_url: true,
+      secure: true,
+    });
+
+    return signedUrl;
+  } catch (error) {
+    console.error('Error generating signed URL:', error);
+    // Fallback to regular URL
+    return cloudinary.url(publicId, {
+      resource_type: resourceType,
+      type: 'upload',
+      secure: true,
+    });
+  }
 }
 
 /**
@@ -28,12 +55,23 @@ export async function uploadToCloudinary(
     const base64String = buffer.toString('base64');
     const dataURI = `data:${file.type};base64,${base64String}`;
 
-    // Upload to Cloudinary
-    const result = await cloudinary.uploader.upload(dataURI, {
+    // Determine resource type based on file type
+    // IMPORTANT: Upload all files as 'image' resource type for public access
+    // Cloudinary's free plan doesn't allow public access to 'raw' files
+    // PDFs can be uploaded as images and will be publicly accessible
+    const resourceType = 'image';
+
+    console.log(`📤 Uploading as resource_type: ${resourceType} (file type: ${file.type})`);
+
+    // Upload to Cloudinary as image resource type (works for PDFs and images)
+    const uploadOptions: any = {
+      resource_type: 'image', // Use image for public access (free plan compatible)
       folder: folder,
-      resource_type: 'auto', // Automatically detect file type
       allowed_formats: ['pdf', 'doc', 'docx', 'jpg', 'jpeg', 'png', 'gif', 'webp'],
-    });
+      type: 'upload',
+    };
+
+    const result = await cloudinary.uploader.upload(dataURI, uploadOptions);
 
     return {
       success: true,

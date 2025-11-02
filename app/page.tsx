@@ -60,54 +60,146 @@ export default function HomePage() {
       <Navbar />
 
       {/* Hero Section */}
-      <section className="relative pt-24 sm:pt-28 lg:pt-32 pb-12 sm:pb-16 lg:pb-20 px-3 sm:px-4 overflow-hidden">
-        {/* Enhanced Background Effects */}
+      <section className="relative pt-24 sm:pt-28 lg:pt-32 pb-16 sm:pb-20 lg:pb-24 px-3 sm:px-4 overflow-hidden">
+        {/* Simplified Background Effects */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          {/* Animated gradient orbs */}
-          <div className="absolute top-0 left-1/4 w-64 h-64 sm:w-96 sm:h-96 bg-gradient-to-br from-brand-yellow/20 via-brand-yellow/10 to-transparent rounded-full blur-3xl animate-pulse-slow"></div>
-          <div className="absolute bottom-0 right-1/4 w-64 h-64 sm:w-96 sm:h-96 bg-gradient-to-tl from-brand-yellow/15 via-brand-yellow/5 to-transparent rounded-full blur-3xl animate-float"></div>
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 sm:w-[600px] sm:h-[600px] bg-brand-yellow/5 rounded-full blur-3xl animate-float" style={{ animationDelay: '2s', animationDuration: '20s' }}></div>
-          
-          {/* Grid pattern overlay */}
-          <div className="absolute inset-0 bg-grid-pattern opacity-5"></div>
-          
-          {/* Radial gradient overlay */}
-          <div className="absolute inset-0 bg-radial-gradient"></div>
-          
-          {/* Animated lines */}
-          <div className="absolute top-1/4 left-0 w-full h-px bg-gradient-to-r from-transparent via-brand-yellow/20 to-transparent animate-shimmer"></div>
-          <div className="absolute top-1/2 left-0 w-full h-px bg-gradient-to-r from-transparent via-brand-yellow/10 to-transparent animate-shimmer" style={{ animationDelay: '1.5s' }}></div>
-          <div className="absolute top-3/4 left-0 w-full h-px bg-gradient-to-r from-transparent via-brand-yellow/15 to-transparent animate-shimmer" style={{ animationDelay: '3s' }}></div>
+          {/* Single subtle gradient orb */}
+          <div className="absolute top-1/4 right-0 w-96 h-96 sm:w-[500px] sm:h-[500px] lg:w-[600px] lg:h-[600px] bg-gradient-to-br from-brand-yellow/10 via-brand-yellow/5 to-transparent rounded-full blur-3xl animate-float"></div>
+
+          {/* Subtle radial gradient */}
+          <div className="absolute inset-0 bg-radial-gradient opacity-50"></div>
         </div>
 
         <div className="max-w-7xl mx-auto relative z-10">
-          <div className="text-center mb-10 sm:mb-12 lg:mb-16 animate-slide-down">
-            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-display font-bold text-brand-light mb-4 sm:mb-5 lg:mb-6 px-2">
-              Start Your{' '}
-              <span className="text-gradient">Career Journey</span>
-            </h1>
-            <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-gray-400 max-w-3xl mx-auto px-4">
-              Submit your application and get connected with leading employers looking for talent like you
-            </p>
+          {/* Split Layout: Content Left, Visual Right */}
+          <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center mb-16 sm:mb-20 lg:mb-24">
+            {/* Left: Hero Content */}
+            <div className="text-center lg:text-left animate-slide-down">
+              <div className="inline-block mb-4 px-4 py-2 bg-brand-yellow/10 border border-brand-yellow/20 rounded-full">
+                <span className="text-xs sm:text-sm font-semibold text-brand-yellow">Apply in Minutes</span>
+              </div>
+
+              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-display font-bold text-brand-light mb-4 sm:mb-6 leading-tight">
+                Land Your Next{' '}
+                <span className="text-gradient">Opportunity</span>
+              </h1>
+
+              <p className="text-base sm:text-lg md:text-xl text-gray-400 mb-6 sm:mb-8 max-w-xl mx-auto lg:mx-0">
+                One simple application connects you with employers actively seeking talent. No complicated processes, no endless forms.
+              </p>
+
+              <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+                <a href="#application-form">
+                  <Button variant="primary" size="lg" className="w-full sm:w-auto">
+                    Start Application
+                  </Button>
+                </a>
+                <Link href="/login">
+                  <Button variant="outline" size="lg" className="w-full sm:w-auto">
+                    Employer Login
+                  </Button>
+                </Link>
+              </div>
+            </div>
+
+            {/* Right: Visual Element */}
+            <div className="relative animate-fade-in hidden lg:block">
+              <div className="relative">
+                {/* Decorative background */}
+                <div className="absolute inset-0 bg-gradient-to-br from-brand-yellow/20 to-transparent rounded-3xl blur-2xl"></div>
+
+                {/* Main visual card */}
+                <div className="relative glass rounded-2xl p-8 space-y-6">
+                  {/* Application preview mockup */}
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 rounded-full bg-brand-yellow/20 flex items-center justify-center">
+                        <svg className="w-6 h-6 text-brand-yellow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                      </div>
+                      <div className="flex-1">
+                        <div className="h-3 bg-dark-300 rounded-full w-3/4 mb-2"></div>
+                        <div className="h-2 bg-dark-300/50 rounded-full w-1/2"></div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-3 pl-2 border-l-2 border-brand-yellow/30">
+                      {[1, 2, 3].map((i) => (
+                        <div key={i} className="flex items-center gap-2 pl-4">
+                          <div className="w-2 h-2 rounded-full bg-brand-yellow"></div>
+                          <div className="h-2 bg-dark-300/50 rounded-full flex-1"></div>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="pt-4 flex gap-2">
+                      <div className="h-10 bg-brand-yellow/20 rounded-lg flex-1"></div>
+                      <div className="h-10 bg-dark-300/30 rounded-lg w-24"></div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Floating badge */}
+                <div className="absolute -top-4 -right-4 glass rounded-xl px-4 py-3 animate-bounce-in shadow-xl">
+                  <div className="flex items-center gap-2">
+                    <svg className="w-5 h-5 text-accent-green" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                    <span className="text-sm font-semibold text-accent-green">Quick Apply</span>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
 
-          {/* Stats */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6 max-w-4xl mx-auto mb-12 sm:mb-16 lg:mb-20">
+          {/* Feature Highlights - Replace Stats */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {[
-              { label: 'Active Employers', value: '50+' },
-              { label: 'Jobs Posted', value: '200+' },
-              { label: 'Applications', value: '1K+' },
-              { label: 'Success Rate', value: '85%' },
-            ].map((stat, index) => (
+              {
+                icon: (
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                ),
+                title: 'Fast Application',
+                description: 'Complete your profile in under 5 minutes',
+              },
+              {
+                icon: (
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                  </svg>
+                ),
+                title: 'Direct Employer Access',
+                description: 'Your profile reaches hiring managers directly',
+              },
+              {
+                icon: (
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                  </svg>
+                ),
+                title: 'Secure & Private',
+                description: 'Your information is protected and confidential',
+              },
+            ].map((feature, index) => (
               <div
-                key={stat.label}
-                className="glass rounded-lg sm:rounded-xl p-4 sm:p-5 lg:p-6 text-center animate-scale-in hover:scale-105 transition-transform duration-300"
+                key={feature.title}
+                className="glass rounded-xl p-5 sm:p-6 animate-scale-in hover:scale-105 transition-all duration-300 group"
                 style={{ animationDelay: `${index * 100}ms` }}
               >
-                <div className="text-2xl sm:text-3xl lg:text-4xl font-bold text-brand-yellow mb-1 sm:mb-2">
-                  {stat.value}
+                <div className="w-12 h-12 bg-brand-yellow/10 rounded-lg flex items-center justify-center mb-4 group-hover:bg-brand-yellow/20 transition-colors">
+                  <div className="text-brand-yellow">
+                    {feature.icon}
+                  </div>
                 </div>
-                <div className="text-xs sm:text-sm text-gray-400">{stat.label}</div>
+                <h3 className="text-base sm:text-lg font-semibold text-brand-light mb-2">
+                  {feature.title}
+                </h3>
+                <p className="text-sm text-gray-400">
+                  {feature.description}
+                </p>
               </div>
             ))}
           </div>
@@ -115,7 +207,7 @@ export default function HomePage() {
       </section>
 
       {/* Application Form Section */}
-      <section className="py-12 sm:py-16 lg:py-20 px-3 sm:px-4 relative">
+      <section id="application-form" className="py-12 sm:py-16 lg:py-20 px-3 sm:px-4 relative">
         <div className="max-w-3xl mx-auto">
           <div className="glass rounded-xl sm:rounded-2xl p-5 sm:p-8 lg:p-12 shadow-dark-elevation animate-slide-up">
             <div className="text-center mb-6 sm:mb-8">

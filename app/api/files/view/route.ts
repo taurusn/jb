@@ -4,6 +4,7 @@ import path from 'path';
 import { existsSync } from 'fs';
 import { getCurrentUser } from '@/lib/auth';
 import { getEmployerProfile } from '@/backend/services/auth.service';
+import cloudinary from '@/lib/cloudinary';
 
 /**
  * @openapi
@@ -47,43 +48,172 @@ import { getEmployerProfile } from '@/backend/services/auth.service';
  *       500:
  *         description: Internal server error
  */
+async function validateFileAccess(request: NextRequest): Promise<{ user: any; fileParam: string } | NextResponse> {
+  // Check authentication - only authenticated employers can view files
+  const user = await getCurrentUser();
+  if (!user) {
+    return NextResponse.json(
+      { success: false, error: 'Unauthorized' },
+      { status: 401 }
+    );
+  }
+
+  // Verify employer profile
+  const employerProfile = await getEmployerProfile(user.userId);
+  if (!employerProfile) {
+    return NextResponse.json(
+      { success: false, error: 'Access forbidden' },
+      { status: 403 }
+    );
+  }
+
+  const { searchParams } = new URL(request.url);
+  const fileParam = searchParams.get('file');
+
+  if (!fileParam) {
+    return NextResponse.json(
+      { success: false, error: 'File parameter is required' },
+      { status: 400 }
+    );
+  }
+
+  return { user, fileParam };
+}
+
+export async function HEAD(request: NextRequest) {
+  try {
+    const validation = await validateFileAccess(request);
+    if (validation instanceof NextResponse) {
+      return validation;
+    }
+
+    const { fileParam } = validation;
+    console.log('🔍 HEAD request for:', fileParam);
+
+    // Check if this is a Cloudinary URL (external URL)
+    if (fileParam.startsWith('https://res.cloudinary.com/')) {
+      console.log('☁️ Cloudinary URL detected - returning OK');
+      // For Cloudinary URLs, return 200 OK since they're publicly accessible
+      return new NextResponse(null, { status: 200 });
+    }
+
+    // Handle local files (development)
+    const safePath = fileParam.replace(/\.\./g, '').replace(/\/\//g, '/');
+    const cleanPath = safePath.startsWith('/') ? safePath.substring(1) : safePath;
+    const fullPath = path.join(process.cwd(), cleanPath);
+
+    // Ensure the file is within the uploads directory
+    const uploadsDir = path.join(process.cwd(), 'public/uploads');
+    if (!fullPath.startsWith(uploadsDir)) {
+      return new NextResponse(null, { status: 403 });
+    }
+
+    // Check if file exists
+    if (!existsSync(fullPath)) {
+      return new NextResponse(null, { status: 404 });
+    }
+
+    return new NextResponse(null, { status: 200 });
+  } catch (error) {
+    console.error('File HEAD request error:', error);
+    return new NextResponse(null, { status: 500 });
+  }
+}
+
 export async function GET(request: NextRequest) {
   try {
-    // Check authentication - only authenticated employers can view files
-    const user = await getCurrentUser();
-    if (!user) {
-      return NextResponse.json(
-        { success: false, error: 'Unauthorized' },
-        { status: 401 }
-      );
+    const validation = await validateFileAccess(request);
+    if (validation instanceof NextResponse) {
+      return validation;
     }
 
-    // Verify employer profile
-    const employerProfile = await getEmployerProfile(user.userId);
-    if (!employerProfile) {
-      return NextResponse.json(
-        { success: false, error: 'Access forbidden' },
-        { status: 403 }
-      );
-    }
-
-    const { searchParams } = new URL(request.url);
-    const fileParam = searchParams.get('file');
-
-    if (!fileParam) {
-      return NextResponse.json(
-        { success: false, error: 'File parameter is required' },
-        { status: 400 }
-      );
-    }
-
+    const { fileParam } = validation;
     console.log('🔍 File view request for:', fileParam);
 
     // Check if this is a Cloudinary URL (external URL)
     if (fileParam.startsWith('https://res.cloudinary.com/')) {
-      console.log('☁️ Cloudinary URL detected, redirecting...');
-      // For Cloudinary URLs, we can redirect directly since they're already secure
-      return NextResponse.redirect(fileParam);
+      console.log('☁️ Cloudinary URL detected, generating signed URL and proxying...');
+
+      try {
+        // Extract public_id from Cloudinary URL
+        // URL format: https://res.cloudinary.com/{cloud_name}/{resource_type}/upload/{version}/{public_id}.{extension}
+        const urlParts = fileParam.split('/upload/');
+        if (urlParts.length < 2) {
+          console.error('❌ Invalid Cloudinary URL format');
+          return NextResponse.json(
+            { success: false, error: 'Invalid file URL format' },
+            { status: 400 }
+          );
+        }
+
+        const pathAfterUpload = urlParts[1];
+        // Remove version number if present (v1234567890/path/to/file.pdf -> path/to/file.pdf)
+        const pathWithoutVersion = pathAfterUpload.replace(/^v\d+\//, '');
+
+        // Determine resource type from URL
+        const resourceType = urlParts[0].includes('/image/') ? 'image' : 'raw';
+
+        // Extract file extension from original URL for proper Content-Type
+        const fileExtension = pathWithoutVersion.match(/\.([^.]+)$/)?.[1] || 'pdf';
+
+        // For raw files with extensions in URL, the extension is part of the public_id
+        // For image files without extensions, we need to extract just the id without extension
+        let publicId = pathWithoutVersion;
+        if (resourceType === 'image') {
+          // Remove extension for images
+          publicId = pathWithoutVersion.replace(/\.[^/.]+$/, '');
+        }
+        // For raw files, keep the extension as part of public_id
+
+        console.log('📝 Public ID:', publicId, 'Resource type:', resourceType, 'Extension:', fileExtension);
+
+        // For raw files, just use the direct URL (they're publicly accessible)
+        // For images, we can also use direct URLs
+        console.log('📡 Fetching directly from Cloudinary URL:', fileParam);
+        const response = await fetch(fileParam);
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('❌ Failed to fetch from Cloudinary:', response.status);
+          console.error('❌ Error details:', errorText);
+          console.error('❌ Original file URL:', fileParam);
+          return NextResponse.json(
+            { success: false, error: 'Failed to fetch file from storage', details: errorText },
+            { status: response.status }
+          );
+        }
+
+        // Get the file content
+        const fileBuffer = await response.arrayBuffer();
+
+        // Set proper content type based on file extension
+        let contentType = 'application/pdf';
+        if (fileExtension === 'doc') {
+          contentType = 'application/msword';
+        } else if (fileExtension === 'docx') {
+          contentType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+        }
+
+        console.log('✅ Successfully proxied Cloudinary file');
+
+        // Return the proxied content with proper headers to force inline display
+        return new NextResponse(fileBuffer, {
+          status: 200,
+          headers: {
+            'Content-Type': contentType,
+            'Content-Disposition': `inline; filename="document.${fileExtension}"`,
+            'Cache-Control': 'public, max-age=3600',
+            'Access-Control-Allow-Origin': '*',
+            'X-Content-Type-Options': 'nosniff',
+          },
+        });
+      } catch (error) {
+        console.error('❌ Error proxying Cloudinary file:', error);
+        return NextResponse.json(
+          { success: false, error: 'Failed to load file from storage' },
+          { status: 500 }
+        );
+      }
     }
 
     // Handle local files (development)

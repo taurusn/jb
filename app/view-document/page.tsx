@@ -18,7 +18,7 @@ function ViewDocumentContent() {
       setError('No file specified');
       setLoading(false);
     } else {
-      // Validate file access by making a HEAD request
+      // Validate file access by making a HEAD request through the proxy
       fetch(`/api/files/view?file=${encodeURIComponent(fileUrl)}`, {
         method: 'HEAD',
       })
@@ -41,7 +41,7 @@ function ViewDocumentContent() {
 
   const handleDownload = () => {
     if (fileUrl) {
-      // Create a temporary link to download the file
+      // Create a temporary link to download the file via the proxy
       const link = document.createElement('a');
       link.href = `/api/files/view?file=${encodeURIComponent(fileUrl)}`;
       link.download = `${candidateName.replace(/\s+/g, '_')}_Resume`;
