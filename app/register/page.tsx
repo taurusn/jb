@@ -19,28 +19,69 @@ export default function RegisterPage() {
     phone: '',
     industry: '',
     companySize: '',
-    website: '',
+    companyWebsite: '',
   });
+
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
     setError(null);
+
+    // Clear field-specific error when user types
+    if (fieldErrors[name]) {
+      setFieldErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors[name];
+        return newErrors;
+      });
+    }
+  };
+
+  const validatePassword = (password: string): string[] => {
+    const errors: string[] = [];
+
+    if (password.length < 8) {
+      errors.push('at least 8 characters');
+    }
+    if (!/[A-Z]/.test(password)) {
+      errors.push('one uppercase letter');
+    }
+    if (!/[a-z]/.test(password)) {
+      errors.push('one lowercase letter');
+    }
+    if (!/[0-9]/.test(password)) {
+      errors.push('one number');
+    }
+    if (!/[^A-Za-z0-9]/.test(password)) {
+      errors.push('one special character');
+    }
+
+    return errors;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
+    setFieldErrors({});
+    setSuccessMessage(null);
 
     try {
       // Validate passwords match
       if (formData.password !== formData.confirmPassword) {
+        setFieldErrors({ confirmPassword: 'Passwords do not match' });
         throw new Error('Passwords do not match');
       }
 
-      if (formData.password.length < 8) {
-        throw new Error('Password must be at least 8 characters');
+      // Validate password strength
+      const passwordErrors = validatePassword(formData.password);
+      if (passwordErrors.length > 0) {
+        const errorMessage = `Password must contain ${passwordErrors.join(', ')}`;
+        setFieldErrors({ password: errorMessage });
+        throw new Error(errorMessage);
       }
 
       const response = await fetch('/api/auth/register', {
@@ -49,23 +90,33 @@ export default function RegisterPage() {
         body: JSON.stringify({
           email: formData.email,
           password: formData.password,
+          confirmPassword: formData.confirmPassword,
           companyName: formData.companyName,
           contactPerson: formData.contactPerson,
           phone: formData.phone,
           industry: formData.industry,
           companySize: formData.companySize,
-          website: formData.website || undefined,
+          companyWebsite: formData.companyWebsite || undefined,
         }),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Registration failed');
+        // Handle validation errors from backend
+        if (data.error) {
+          throw new Error(data.error);
+        }
+        throw new Error('Registration failed. Please try again.');
       }
 
-      // Redirect to login
-      router.push('/login?registered=true');
+      // Show success message
+      setSuccessMessage('Account created successfully! Redirecting to dashboard...');
+
+      // Redirect to dashboard after a short delay
+      setTimeout(() => {
+        router.push('/employer/dashboard');
+      }, 1500);
     } catch (err) {
       const error = err as Error;
       setError(error.message);
@@ -113,6 +164,27 @@ export default function RegisterPage() {
               </div>
             )}
 
+            {successMessage && (
+              <div className="mb-6 bg-accent-green/10 border border-accent-green/50 rounded-lg p-4 animate-slide-down">
+                <div className="flex items-center gap-2">
+                  <svg
+                    className="w-5 h-5 text-accent-green flex-shrink-0"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                  <p className="text-sm text-accent-green">{successMessage}</p>
+                </div>
+              </div>
+            )}
+
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Account Information */}
               <div className="space-y-4">
@@ -123,69 +195,90 @@ export default function RegisterPage() {
                   Account Information
                 </h3>
 
-                <Input
-                  label="Email Address"
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  placeholder="company@example.com"
-                  required
-                  fullWidth
-                  icon={
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-                      />
-                    </svg>
-                  }
-                />
+                <div>
+                  <Input
+                    label="Email Address"
+                    type="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    placeholder="company@example.com"
+                    required
+                    fullWidth
+                    disabled={loading}
+                    icon={
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                        />
+                      </svg>
+                    }
+                  />
+                  {fieldErrors.email && (
+                    <p className="mt-1 text-xs text-accent-red">{fieldErrors.email}</p>
+                  )}
+                </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <Input
-                    label="Password"
-                    type="password"
-                    name="password"
-                    value={formData.password}
-                    onChange={handleChange}
-                    placeholder="Min. 8 characters"
-                    required
-                    fullWidth
-                    icon={
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-                        />
-                      </svg>
-                    }
-                  />
+                  <div>
+                    <Input
+                      label="Password"
+                      type="password"
+                      name="password"
+                      value={formData.password}
+                      onChange={handleChange}
+                      placeholder="Min. 8 characters"
+                      required
+                      fullWidth
+                      disabled={loading}
+                      icon={
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                          />
+                        </svg>
+                      }
+                    />
+                    {fieldErrors.password && (
+                      <p className="mt-1 text-xs text-accent-red">{fieldErrors.password}</p>
+                    )}
+                    <p className="mt-1 text-xs text-gray-500">
+                      Must include: uppercase, lowercase, number, special character
+                    </p>
+                  </div>
 
-                  <Input
-                    label="Confirm Password"
-                    type="password"
-                    name="confirmPassword"
-                    value={formData.confirmPassword}
-                    onChange={handleChange}
-                    placeholder="Re-enter password"
-                    required
-                    fullWidth
-                    icon={
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                        />
-                      </svg>
-                    }
-                  />
+                  <div>
+                    <Input
+                      label="Confirm Password"
+                      type="password"
+                      name="confirmPassword"
+                      value={formData.confirmPassword}
+                      onChange={handleChange}
+                      placeholder="Re-enter password"
+                      required
+                      fullWidth
+                      disabled={loading}
+                      icon={
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                          />
+                        </svg>
+                      }
+                    />
+                    {fieldErrors.confirmPassword && (
+                      <p className="mt-1 text-xs text-accent-red">{fieldErrors.confirmPassword}</p>
+                    )}
+                  </div>
                 </div>
               </div>
 
@@ -208,6 +301,7 @@ export default function RegisterPage() {
                     placeholder="Acme Corporation"
                     required
                     fullWidth
+                    disabled={loading}
                     icon={
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path
@@ -229,6 +323,7 @@ export default function RegisterPage() {
                     placeholder="John Doe"
                     required
                     fullWidth
+                    disabled={loading}
                     icon={
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path
@@ -252,6 +347,7 @@ export default function RegisterPage() {
                     placeholder="0501234567"
                     required
                     fullWidth
+                    disabled={loading}
                     icon={
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path
@@ -273,7 +369,8 @@ export default function RegisterPage() {
                       value={formData.industry}
                       onChange={handleChange}
                       required
-                      className="w-full px-4 py-3 rounded-lg bg-dark-400 border-2 border-dark-300 text-brand-light font-medium transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-brand-yellow focus:border-brand-yellow hover:border-brand-yellow/50"
+                      disabled={loading}
+                      className="w-full px-4 py-3 rounded-lg bg-dark-400 border-2 border-dark-300 text-brand-light font-medium transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-brand-yellow focus:border-brand-yellow hover:border-brand-yellow/50 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <option value="">Select industry</option>
                       <option value="Technology">Technology</option>
@@ -298,7 +395,8 @@ export default function RegisterPage() {
                       value={formData.companySize}
                       onChange={handleChange}
                       required
-                      className="w-full px-4 py-3 rounded-lg bg-dark-400 border-2 border-dark-300 text-brand-light font-medium transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-brand-yellow focus:border-brand-yellow hover:border-brand-yellow/50"
+                      disabled={loading}
+                      className="w-full px-4 py-3 rounded-lg bg-dark-400 border-2 border-dark-300 text-brand-light font-medium transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-brand-yellow focus:border-brand-yellow hover:border-brand-yellow/50 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <option value="">Select size</option>
                       <option value="1-10">1-10 employees</option>
@@ -313,11 +411,12 @@ export default function RegisterPage() {
                   <Input
                     label="Website (Optional)"
                     type="url"
-                    name="website"
-                    value={formData.website}
+                    name="companyWebsite"
+                    value={formData.companyWebsite}
                     onChange={handleChange}
                     placeholder="https://company.com"
                     fullWidth
+                    disabled={loading}
                     icon={
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path

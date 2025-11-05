@@ -25,6 +25,8 @@ export interface RegisterData {
   contactPerson: string;
   companyWebsite?: string;
   phone: string;
+  industry: string;
+  companySize: string;
 }
 
 export interface AuthResponse {
@@ -49,6 +51,8 @@ export interface EmployerProfileData {
   contactPerson: string;
   companyWebsite?: string | null;
   phone: string;
+  industry?: string | null;
+  companySize?: string | null;
   createdAt: Date;
   updatedAt: Date;
 }

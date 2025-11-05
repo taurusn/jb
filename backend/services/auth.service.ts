@@ -1,6 +1,7 @@
 import bcrypt from 'bcryptjs';
 import { prisma } from '@/lib/db';
 import { generateToken } from '@/lib/auth';
+import { validateEmailMX } from '@/lib/email-validator';
 import type { LoginCredentials, RegisterData, AuthResponse, EmployerWithUser } from '../types';
 
 /**
@@ -8,6 +9,15 @@ import type { LoginCredentials, RegisterData, AuthResponse, EmployerWithUser } f
  */
 export async function registerEmployer(data: RegisterData): Promise<AuthResponse> {
   try {
+    // Validate email MX records
+    const emailValidation = await validateEmailMX(data.email);
+    if (!emailValidation.valid) {
+      return {
+        success: false,
+        error: emailValidation.error || 'Invalid email domain',
+      };
+    }
+
     // Check if user already exists
     const existingUser = await prisma.user.findUnique({
       where: { email: data.email },
@@ -35,6 +45,8 @@ export async function registerEmployer(data: RegisterData): Promise<AuthResponse
             contactPerson: data.contactPerson,
             companyWebsite: data.companyWebsite || null,
             phone: data.phone,
+            industry: data.industry,
+            companySize: data.companySize,
           },
         },
       },

@@ -53,13 +53,21 @@ import { handleRegister } from '@/backend/controllers/auth.controller';
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    
+
     const result = await handleRegister(body);
 
     if (!result.success) {
+      // Determine appropriate status code based on error type
+      let statusCode = 400;
+      if (result.error?.includes('already registered')) {
+        statusCode = 409; // Conflict
+      } else if (result.error?.includes('email domain')) {
+        statusCode = 422; // Unprocessable Entity
+      }
+
       return NextResponse.json(
         { success: false, error: result.error },
-        { status: 400 }
+        { status: statusCode }
       );
     }
 
@@ -87,8 +95,9 @@ export async function POST(request: NextRequest) {
     return response;
   } catch (error) {
     console.error('Register API error:', error);
+    const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
     return NextResponse.json(
-      { success: false, error: 'Internal server error' },
+      { success: false, error: 'Registration failed. Please try again later.' },
       { status: 500 }
     );
   }
