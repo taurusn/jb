@@ -6,8 +6,8 @@ import TimeSlotPicker from '../shared/TimeSlotPicker';
 
 /**
  * AvailabilitySelector Component
- * Combines DatePicker and TimeSlotPicker for candidates to select interview availability
- * Manages state for next 7 days with time slots for each day
+ * Combines DatePicker and TimeSlotPicker for candidates to select recurring weekly availability
+ * Manages state for days of the week with time slots
  *
  * @param value - JSON string of TimeSlot[] or null
  * @param onChange - Callback with JSON string of selected slots
@@ -15,7 +15,7 @@ import TimeSlotPicker from '../shared/TimeSlotPicker';
  */
 
 interface TimeSlot {
-  date: string; // YYYY-MM-DD
+  date: string; // Day name: "Sunday", "Monday", etc.
   times: string[]; // ["09:00", "10:00", ...]
 }
 
@@ -26,7 +26,7 @@ interface AvailabilitySelectorProps {
 }
 
 export default function AvailabilitySelector({ value, onChange, disabled = false }: AvailabilitySelectorProps) {
-  const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [selectedDay, setSelectedDay] = useState<string | null>(null);
   const [availability, setAvailability] = useState<TimeSlot[]>([]);
 
   // Parse initial value
@@ -36,9 +36,9 @@ export default function AvailabilitySelector({ value, onChange, disabled = false
         const parsed = JSON.parse(value) as TimeSlot[];
         setAvailability(parsed);
 
-        // Select first date if available
-        if (parsed.length > 0 && !selectedDate) {
-          setSelectedDate(parsed[0].date);
+        // Select first day if available
+        if (parsed.length > 0 && !selectedDay) {
+          setSelectedDay(parsed[0].date);
         }
       } catch (error) {
         console.error('Failed to parse availability:', error);
@@ -47,53 +47,44 @@ export default function AvailabilitySelector({ value, onChange, disabled = false
     }
   }, [value]);
 
-  // Get times for currently selected date
-  const selectedDateTimes = selectedDate
-    ? availability.find((slot) => slot.date === selectedDate)?.times || []
+  // Get times for currently selected day
+  const selectedDayTimes = selectedDay
+    ? availability.find((slot) => slot.date === selectedDay)?.times || []
     : [];
 
-  // Get all dates that have times selected
-  const datesWithTimes = availability.map((slot) => slot.date);
+  // Get all days that have times selected
+  const daysWithTimes = availability.map((slot) => slot.date);
 
-  const handleDateSelect = (date: string) => {
-    setSelectedDate(date);
-
-    // If this date doesn't exist in availability yet, add it with empty times
-    if (!availability.find((slot) => slot.date === date)) {
-      const updated = [...availability, { date, times: [] }].sort((a, b) =>
-        a.date.localeCompare(b.date)
-      );
-      setAvailability(updated);
-      onChange(JSON.stringify(updated));
-    }
+  const handleDaySelect = (day: string) => {
+    setSelectedDay(day);
+    // Don't automatically add day until user selects times
   };
 
   const handleTimesChange = (times: string[]) => {
-    if (!selectedDate) return;
+    if (!selectedDay) return;
 
     let updated: TimeSlot[];
 
     if (times.length === 0) {
-      // Remove date if no times selected
-      updated = availability.filter((slot) => slot.date !== selectedDate);
+      // Remove day if no times selected - FIX: Filter out days with empty times
+      updated = availability.filter((slot) => slot.date !== selectedDay);
 
-      // Select another date if available
+      // Select another day if available
       if (updated.length > 0) {
-        setSelectedDate(updated[0].date);
+        setSelectedDay(updated[0].date);
       } else {
-        setSelectedDate(null);
+        setSelectedDay(null);
       }
     } else {
-      // Update times for selected date
-      const existingIndex = availability.findIndex((slot) => slot.date === selectedDate);
+      // Update times for selected day
+      const existingIndex = availability.findIndex((slot) => slot.date === selectedDay);
 
       if (existingIndex >= 0) {
         updated = [...availability];
-        updated[existingIndex] = { date: selectedDate, times };
+        updated[existingIndex] = { date: selectedDay, times };
       } else {
-        updated = [...availability, { date: selectedDate, times }].sort((a, b) =>
-          a.date.localeCompare(b.date)
-        );
+        // Add new day with times
+        updated = [...availability, { date: selectedDay, times }];
       }
     }
 
@@ -105,51 +96,43 @@ export default function AvailabilitySelector({ value, onChange, disabled = false
     return availability.reduce((total, slot) => total + slot.times.length, 0);
   };
 
-  const formatDateDisplay = (dateStr: string): string => {
-    const date = new Date(dateStr + 'T00:00:00');
-    return date.toLocaleDateString('en-US', {
-      weekday: 'short',
-      month: 'short',
-      day: 'numeric',
-    });
-  };
-
   return (
     <div className="space-y-6">
       {/* Header */}
       <div>
         <h3 className="text-lg font-semibold text-brand-light mb-2">
-          📅 Interview Availability
+          📅 Weekly Availability
         </h3>
         <p className="text-sm text-gray-400">
-          Select dates and time slots when you're available for interviews over the next 7 days.
-          Employers will choose from your available times.
+          Select the days and times you're typically available for interviews each week.
+          Employers will schedule interviews during your available times.
         </p>
       </div>
 
       {/* Date Picker */}
       <div className="glass rounded-xl p-6">
         <DatePicker
-          selectedDate={selectedDate}
-          onChange={handleDateSelect}
+          selectedDate={selectedDay}
+          onChange={handleDaySelect}
           disabled={disabled}
+          daysWithTimes={daysWithTimes}
         />
       </div>
 
-      {/* Time Slot Picker (only show if date is selected) */}
-      {selectedDate && (
+      {/* Time Slot Picker (only show if day is selected) */}
+      {selectedDay && (
         <div className="glass rounded-xl p-6 animate-slide-down">
           <div className="mb-4">
             <h4 className="text-md font-semibold text-brand-light mb-1">
-              Available Times for {formatDateDisplay(selectedDate)}
+              Available Times on {selectedDay}s
             </h4>
             <p className="text-xs text-gray-400">
-              Select all time slots you're available on this date
+              Select all time slots you're typically available every {selectedDay} (24-hour format)
             </p>
           </div>
 
           <TimeSlotPicker
-            selectedTimes={selectedDateTimes}
+            selectedTimes={selectedDayTimes}
             onChange={handleTimesChange}
             disabled={disabled}
           />
@@ -163,12 +146,12 @@ export default function AvailabilitySelector({ value, onChange, disabled = false
             <span className="text-2xl">✅</span>
             <div className="flex-1">
               <h4 className="text-sm font-semibold text-brand-light mb-2">
-                Availability Summary
+                Weekly Availability Summary
               </h4>
               <div className="space-y-2">
                 {availability.map((slot) => (
                   <div key={slot.date} className="flex items-center justify-between text-sm">
-                    <span className="text-gray-400">{formatDateDisplay(slot.date)}</span>
+                    <span className="text-gray-400">{slot.date}s</span>
                     <span className="text-brand-yellow font-medium">
                       {slot.times.length} time slot{slot.times.length !== 1 ? 's' : ''}
                     </span>
@@ -189,7 +172,7 @@ export default function AvailabilitySelector({ value, onChange, disabled = false
         <div className="glass rounded-xl p-6 text-center">
           <span className="text-4xl mb-2 block">📅</span>
           <p className="text-sm text-gray-400">
-            No availability selected yet. Click on a date above to get started.
+            No availability selected yet. Click on a day above to get started.
           </p>
         </div>
       )}

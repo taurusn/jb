@@ -17,12 +17,11 @@ interface TimeSlotPickerProps {
   disabled?: boolean;
 }
 
-// Generate time slots from 09:00 to 17:00 in 30-minute intervals
+// Generate time slots from 00:00 to 23:30 in 30-minute intervals (24-hour format)
 const generateTimeSlots = (): string[] => {
   const slots: string[] = [];
-  for (let hour = 9; hour <= 17; hour++) {
+  for (let hour = 0; hour < 24; hour++) {
     for (let minute = 0; minute < 60; minute += 30) {
-      if (hour === 17 && minute > 0) break; // Stop at 17:00
       const time = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
       slots.push(time);
     }
@@ -31,11 +30,8 @@ const generateTimeSlots = (): string[] => {
 };
 
 const formatTimeDisplay = (time: string): string => {
-  const [hour, minute] = time.split(':');
-  const hourNum = parseInt(hour);
-  const period = hourNum >= 12 ? 'PM' : 'AM';
-  const displayHour = hourNum > 12 ? hourNum - 12 : hourNum === 0 ? 12 : hourNum;
-  return `${displayHour}:${minute} ${period}`;
+  // 24-hour format display
+  return time;
 };
 
 export default function TimeSlotPicker({ selectedTimes, onChange, disabled = false }: TimeSlotPickerProps) {

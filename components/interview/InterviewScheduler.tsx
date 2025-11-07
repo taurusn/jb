@@ -30,8 +30,8 @@ export default function InterviewScheduler({
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [selectedDuration, setSelectedDuration] = useState<number>(30);
 
-  // Parse availability data
-  const availability = useMemo<TimeSlot[]>(() => {
+  // Parse weekly availability data (days of week)
+  const weeklyAvailability = useMemo<TimeSlot[]>(() => {
     if (!availableTimeSlots) return [];
     try {
       return JSON.parse(availableTimeSlots);
@@ -41,17 +41,36 @@ export default function InterviewScheduler({
     }
   }, [availableTimeSlots]);
 
-  // Get unique dates from availability
+  // Generate next 7 days that match candidate's weekly availability
   const availableDates = useMemo(() => {
-    return availability.map(slot => slot.date).sort();
-  }, [availability]);
+    const dates: Array<{ date: string; dayName: string; times: string[] }> = [];
+    const today = new Date();
+
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(today);
+      date.setDate(today.getDate() + i);
+
+      const dayName = date.toLocaleDateString('en-US', { weekday: 'long' });
+      const dayAvailability = weeklyAvailability.find(slot => slot.date === dayName);
+
+      if (dayAvailability && dayAvailability.times.length > 0) {
+        dates.push({
+          date: date.toISOString().split('T')[0], // YYYY-MM-DD
+          dayName,
+          times: dayAvailability.times,
+        });
+      }
+    }
+
+    return dates;
+  }, [weeklyAvailability]);
 
   // Get times for selected date
   const availableTimes = useMemo(() => {
     if (!selectedDate) return [];
-    const slot = availability.find(s => s.date === selectedDate);
-    return slot?.times || [];
-  }, [selectedDate, availability]);
+    const dateInfo = availableDates.find(d => d.date === selectedDate);
+    return dateInfo?.times || [];
+  }, [selectedDate, availableDates]);
 
   // Handle date selection
   const handleDateSelect = (date: string) => {
@@ -65,7 +84,7 @@ export default function InterviewScheduler({
 
     // Combine date and time into a Date object
     const [hours, minutes] = selectedTime.split(':').map(Number);
-    const meetingDate = new Date(selectedDate);
+    const meetingDate = new Date(selectedDate + 'T00:00:00');
     meetingDate.setHours(hours, minutes, 0, 0);
 
     onSchedule(meetingDate, selectedDuration);
@@ -73,7 +92,7 @@ export default function InterviewScheduler({
 
   // Format date for display
   const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr);
+    const date = new Date(dateStr + 'T00:00:00');
     return date.toLocaleDateString('en-US', {
       weekday: 'short',
       month: 'short',
@@ -82,7 +101,7 @@ export default function InterviewScheduler({
   };
 
   // Check if candidate has provided availability
-  if (!availableTimeSlots || availability.length === 0) {
+  if (!availableTimeSlots || weeklyAvailability.length === 0 || availableDates.length === 0) {
     return (
       <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
         <div className="bg-brand-dark border border-brand-yellow/20 rounded-lg p-6 sm:p-8 max-w-md w-full">
@@ -122,18 +141,18 @@ export default function InterviewScheduler({
             Select Date
           </h3>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
-            {availableDates.map((date) => (
+            {availableDates.map((dateInfo) => (
               <button
-                key={date}
-                onClick={() => handleDateSelect(date)}
+                key={dateInfo.date}
+                onClick={() => handleDateSelect(dateInfo.date)}
                 disabled={loading}
                 className={`p-3 rounded-lg border-2 transition-all ${
-                  selectedDate === date
+                  selectedDate === dateInfo.date
                     ? 'bg-brand-yellow text-brand-dark border-brand-yellow font-bold'
                     : 'bg-brand-dark/50 border-gray-700 text-gray-300 hover:border-brand-yellow/50 hover:text-brand-light'
                 } ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
               >
-                <div className="text-xs font-medium">{formatDate(date)}</div>
+                <div className="text-xs font-medium">{formatDate(dateInfo.date)}</div>
               </button>
             ))}
           </div>
