@@ -5,10 +5,11 @@ import { Button, Navbar, AuthGuard, Tabs } from '@/components';
 import { useApplicants, useRequestedApplicants, useDashboard, useRequest, useUpdateRequestStatus } from '@/features/employer/useEmployer';
 import { useLogout } from '@/features/auth/useAuth';
 import type { TabItem } from '@/components';
+import InterviewScheduler from '@/components/interview/InterviewScheduler';
 
 export default function EmployerDashboard() {
   const { logout } = useLogout();
-  const { stats, loading: statsLoading } = useDashboard();
+  const { stats, loading: statsLoading, refetch: refetchStats } = useDashboard();
   
   // Unrequested applicants
   const { 
@@ -45,14 +46,50 @@ export default function EmployerDashboard() {
   const [updatingRequestId, setUpdatingRequestId] = useState<string | null>(null);
   const [isFilterExpanded, setIsFilterExpanded] = useState(false);
 
-  const handleRequest = async (employeeId: string) => {
-    await createRequest(employeeId);
-    setSelectedApplicant(employeeId);
-    // Refresh both lists after successful request
+  // Interview scheduling state
+  const [showScheduler, setShowScheduler] = useState(false);
+  const [schedulingApplicant, setSchedulingApplicant] = useState<{
+    id: string;
+    name: string;
+    email: string;
+    availability: string | null;
+  } | null>(null);
+
+  const handleRequest = (applicant: any) => {
+    // Open scheduler modal
+    setSchedulingApplicant({
+      id: applicant.id,
+      name: applicant.fullName,
+      email: applicant.email || '',
+      availability: applicant.availableTimeSlots || null,
+    });
+    setShowScheduler(true);
+  };
+
+  const handleScheduleInterview = async (meetingDate: Date, duration: number) => {
+    if (!schedulingApplicant) return;
+
+    // Create request with meeting details
+    await createRequest(schedulingApplicant.id, {
+      meetingDate: meetingDate.toISOString(),
+      meetingDuration: duration,
+    });
+
+    setSelectedApplicant(schedulingApplicant.id);
+    setShowScheduler(false);
+    setSchedulingApplicant(null);
+
+    // Refresh both lists and stats after successful request
     setTimeout(() => {
       refetchUnrequested();
       refetchRequested();
+      refetchStats(); // Refresh stats to update the counts
     }, 1000);
+  };
+
+  const handleCancelScheduling = () => {
+    setShowScheduler(false);
+    setSchedulingApplicant(null);
   };
 
   const handleFilter = () => {
@@ -98,6 +135,7 @@ export default function EmployerDashboard() {
     // Delay to show loading state, then refresh
     setTimeout(() => {
       refetchRequested();
+      refetchStats(); // Refresh stats to update the counts
       setUpdatingRequestId(null);
     }, 1000);
   };
@@ -247,7 +285,7 @@ export default function EmployerDashboard() {
                         <Button
                           variant="primary"
                           size="sm"
-                          onClick={() => handleRequest(applicant.id)}
+                          onClick={() => handleRequest(applicant)}
                           disabled={requestLoading}
                           className="sm:flex-1"
                         >
@@ -595,6 +633,18 @@ export default function EmployerDashboard() {
             />
           </div>
         </div>
+
+        {/* Interview Scheduler Modal */}
+        {showScheduler && schedulingApplicant && (
+          <InterviewScheduler
+            candidateName={schedulingApplicant.name}
+            candidateEmail={schedulingApplicant.email}
+            availableTimeSlots={schedulingApplicant.availability}
+            onSchedule={handleScheduleInterview}
+            onCancel={handleCancelScheduling}
+            loading={requestLoading}
+          />
+        )}
       </div>
     </AuthGuard>
   );

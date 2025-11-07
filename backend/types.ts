@@ -68,6 +68,12 @@ export interface EmployerWithUser extends EmployerProfileData {
 // ============================================
 // EMPLOYEE TYPES
 // ============================================
+// Interview availability time slot
+export interface TimeSlot {
+  date: string; // ISO date string (YYYY-MM-DD)
+  times: string[]; // Array of time strings (HH:MM format, e.g., ["09:00", "10:00", "14:00"])
+}
+
 export interface EmployeeApplicationData {
   fullName: string;
   phone: string;
@@ -78,6 +84,7 @@ export interface EmployeeApplicationData {
   experience: string;
   resumeUrl?: string | null;
   profilePictureUrl?: string | null;
+  availableTimeSlots?: string | null; // JSON string of TimeSlot[]
 }
 
 export interface EmployeeApplicationResponse extends EmployeeApplicationData {
@@ -100,12 +107,20 @@ export interface EmployeeRequestData {
   notes?: string | null;
   requestedAt: Date;
   updatedAt: Date;
+  // Interview meeting fields
+  meetingLink?: string | null;
+  meetingDate?: Date | null;
+  meetingDuration?: number | null; // in minutes
+  meetingEndsAt?: Date | null;
 }
 
 export interface CreateEmployeeRequestData {
   employeeId: string;
   employerId: string;
   notes?: string;
+  // Interview scheduling fields
+  meetingDate?: Date;
+  meetingDuration?: number; // 30, 45, or 60 minutes
 }
 
 export interface EmployeeRequestWithDetails extends EmployeeRequestData {

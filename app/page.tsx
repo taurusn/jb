@@ -4,10 +4,11 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { Button, Input, FileUpload, Navbar } from '@/components';
 import { useEmployeeForm } from '@/features/employee/useEmployeeForm';
+import AvailabilitySelector from '@/components/interview/AvailabilitySelector';
 
 export default function HomePage() {
   const { submitApplication, loading, error, success, clearError } = useEmployeeForm();
-  
+
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
@@ -17,9 +18,10 @@ export default function HomePage() {
     skills: '',
     experience: '',
   });
-  
+
   const [resumeFile, setResumeFile] = useState<File | null>(null);
   const [profilePicture, setProfilePicture] = useState<File | null>(null);
+  const [availability, setAvailability] = useState<string | null>(null);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -41,9 +43,14 @@ export default function HomePage() {
     clearError();
   };
 
+  const handleAvailabilityChange = (value: string) => {
+    setAvailability(value);
+    clearError();
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!resumeFile) {
       return;
     }
@@ -52,6 +59,7 @@ export default function HomePage() {
       ...formData,
       resume: resumeFile,
       profilePicture: profilePicture || undefined,
+      availableTimeSlots: availability || undefined,
     });
   };
 
@@ -412,11 +420,27 @@ export default function HomePage() {
                 </div>
               </div>
 
-              {/* File Uploads */}
+              {/* Interview Availability */}
               <div className="space-y-4 sm:space-y-6">
                 <h3 className="text-base sm:text-lg font-semibold text-brand-light flex items-center gap-2">
                   <span className="w-7 h-7 sm:w-8 sm:h-8 bg-brand-yellow rounded-full flex items-center justify-center text-brand-dark text-xs sm:text-sm font-bold flex-shrink-0">
                     4
+                  </span>
+                  Interview Availability
+                </h3>
+
+                <AvailabilitySelector
+                  value={availability}
+                  onChange={handleAvailabilityChange}
+                  disabled={loading}
+                />
+              </div>
+
+              {/* File Uploads */}
+              <div className="space-y-4 sm:space-y-6">
+                <h3 className="text-base sm:text-lg font-semibold text-brand-light flex items-center gap-2">
+                  <span className="w-7 h-7 sm:w-8 sm:h-8 bg-brand-yellow rounded-full flex items-center justify-center text-brand-dark text-xs sm:text-sm font-bold flex-shrink-0">
+                    5
                   </span>
                   Upload Documents
                 </h3>

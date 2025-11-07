@@ -13,6 +13,7 @@ export interface EmployeeFormData {
   experience: string;
   resume: File | null;
   profilePicture?: File | null;
+  availableTimeSlots?: string; // JSON string of availability
 }
 
 export interface UseEmployeeFormReturn {
@@ -55,6 +56,7 @@ export const useEmployeeForm = (): UseEmployeeFormReturn => {
       formData.append('experience', data.experience);
       formData.append('resume', data.resume);
       if (data.profilePicture) formData.append('profilePicture', data.profilePicture);
+      if (data.availableTimeSlots) formData.append('availableTimeSlots', data.availableTimeSlots);
 
       // Submit to API
       const response = await fetch('/api/employee/submit', {

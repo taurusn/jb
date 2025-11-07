@@ -15,6 +15,7 @@ export interface Applicant {
   resumeUrl: string | null;
   profilePictureUrl: string | null;
   submittedAt: Date;
+  availableTimeSlots?: string | null;
   requestStatus?: string;
   requestId?: string;
   requestedAt?: Date;
@@ -208,7 +209,7 @@ export const useRequestedApplicants = (): UseApplicantsReturn => {
 
 // Hook for creating employee requests
 export interface UseRequestReturn {
-  createRequest: (employeeId: string) => Promise<void>;
+  createRequest: (employeeId: string, meetingDetails?: { meetingDate: string; meetingDuration: number }) => Promise<void>;
   loading: boolean;
   error: string | null;
   success: boolean;
@@ -220,7 +221,10 @@ export const useRequest = (): UseRequestReturn => {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
-  const createRequest = async (employeeId: string) => {
+  const createRequest = async (
+    employeeId: string,
+    meetingDetails?: { meetingDate: string; meetingDuration: number }
+  ) => {
     setLoading(true);
     setError(null);
     setSuccess(false);
@@ -229,7 +233,10 @@ export const useRequest = (): UseRequestReturn => {
       const response = await apiClient.post<{
         success: boolean;
         error?: string;
-      }>('/employer/request', { employeeId });
+      }>('/employer/request', {
+        employeeId,
+        ...meetingDetails,
+      });
 
       if (response.success) {
         setSuccess(true);
@@ -278,27 +285,19 @@ export const useDashboard = (): UseDashboardReturn => {
 
     try {
       // Fetch stats
-      const statsResponse = await apiClient.get<{
-        success: boolean;
-        data?: EmployerStats;
-        error?: string;
-      }>('/employer/stats');
+      const statsResponse = await apiClient.get<EmployerStats>('/employer/stats');
 
-      if (statsResponse.data?.success && statsResponse.data.data) {
-        setStats(statsResponse.data.data);
+      if (statsResponse.success && statsResponse.data) {
+        setStats(statsResponse.data);
       } else {
-        throw new Error(statsResponse.data?.error || 'Failed to fetch stats');
+        throw new Error(statsResponse.error || 'Failed to fetch stats');
       }
 
       // Fetch requests
-      const requestsResponse = await apiClient.get<{
-        success: boolean;
-        data?: { requests: EmployeeRequest[] };
-        error?: string;
-      }>('/employer/request');
+      const requestsResponse = await apiClient.get<EmployeeRequest[]>('/employer/request');
 
-      if (requestsResponse.data?.success && requestsResponse.data.data) {
-        setRequests(requestsResponse.data.data.requests);
+      if (requestsResponse.success && requestsResponse.data) {
+        setRequests(requestsResponse.data);
       }
     } catch (err) {
       const error = err as { response?: { data?: { error?: string } } };

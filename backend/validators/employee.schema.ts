@@ -42,6 +42,9 @@ export const employeeApplicationSchema = z.object({
     .string()
     .min(1, 'Profile picture path is required')
     .optional(),
+  availableTimeSlots: z
+    .string()
+    .optional(),
 });
 
 export type EmployeeApplicationInput = z.infer<typeof employeeApplicationSchema>;
@@ -61,6 +64,20 @@ export const employeeRequestSchema = z.object({
     .max(500, 'Notes are too long')
     .optional()
     .or(z.literal('')),
+  meetingLink: z
+    .string()
+    .optional(),
+  meetingDate: z
+    .coerce.date()
+    .optional(),
+  meetingDuration: z
+    .number()
+    .int()
+    .positive()
+    .optional(),
+  meetingEndsAt: z
+    .coerce.date()
+    .optional(),
 });
 
 export type EmployeeRequestInput = z.infer<typeof employeeRequestSchema>;

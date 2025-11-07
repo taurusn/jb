@@ -25,6 +25,7 @@ export async function createEmployeeApplication(
         experience: data.experience,
         resumeUrl: data.resumeUrl || null,
         profilePictureUrl: data.profilePictureUrl || null,
+        availableTimeSlots: data.availableTimeSlots || null,
       },
     });
 

@@ -64,7 +64,11 @@ model EmployeeApplication {
   resumeUrl           String?  @map("resume_url")
   profilePictureUrl   String?  @map("profile_picture_url")
   submittedAt         DateTime @default(now()) @map("submitted_at")
-  
+
+  // Interview Availability
+  // Stores JSON array: [{date: "2024-01-15", times: ["09:00", "10:00", "14:00"]}]
+  availableTimeSlots  String?  @map("available_time_slots") @db.Text
+
   // Relations
   employeeRequests    EmployeeRequest[]
 
@@ -82,7 +86,13 @@ model EmployeeRequest {
   notes       String?               @db.Text
   requestedAt DateTime              @default(now()) @map("requested_at")
   updatedAt   DateTime              @updatedAt @map("updated_at")
-  
+
+  // Interview Meeting Details
+  meetingLink     String?   @map("meeting_link")
+  meetingDate     DateTime? @map("meeting_date")
+  meetingDuration Int?      @map("meeting_duration") // in minutes (30, 45, 60)
+  meetingEndsAt   DateTime? @map("meeting_ends_at") // Auto-calculated: meetingDate + duration
+
   // Relations
   employee    EmployeeApplication   @relation(fields: [employeeId], references: [id], onDelete: Cascade)
   employer    EmployerProfile       @relation(fields: [employerId], references: [id], onDelete: Cascade)

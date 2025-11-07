@@ -75,6 +75,7 @@ export async function POST(request: NextRequest) {
     const education = formData.get('education') as string;
     const skills = formData.get('skills') as string;
     const experience = formData.get('experience') as string;
+    const availableTimeSlots = formData.get('availableTimeSlots') as string | null;
 
     console.log('\nExtracted text fields:');
     console.log('  fullName:', fullName);
@@ -84,6 +85,7 @@ export async function POST(request: NextRequest) {
     console.log('  education:', education);
     console.log('  skills:', skills);
     console.log('  experience:', experience);
+    console.log('  availableTimeSlots:', availableTimeSlots);
 
     // Handle file uploads
     const resumeFile = formData.get('resume') as File | null;
@@ -131,6 +133,7 @@ export async function POST(request: NextRequest) {
       experience,
       ...(resumeUrl && { resumeUrl }), // Only include if not empty
       ...(profilePictureUrl && { profilePictureUrl }), // Only include if not empty
+      ...(availableTimeSlots && { availableTimeSlots }), // Interview availability
     };
 
     console.log('\nApplication data to be validated:');

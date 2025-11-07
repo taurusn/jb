@@ -37,6 +37,10 @@ export async function createEmployeeRequest(
         employerId: data.employerId,
         notes: data.notes || null,
         status: 'PENDING',
+        meetingLink: data.meetingLink || null,
+        meetingDate: data.meetingDate || null,
+        meetingDuration: data.meetingDuration || null,
+        meetingEndsAt: data.meetingEndsAt || null,
       },
     });
 

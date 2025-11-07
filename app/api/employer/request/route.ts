@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { handleCreateEmployeeRequest, handleGetEmployerRequests } from '@/backend/controllers/employer.controller';
 import { getCurrentUser } from '@/lib/auth';
 import { getEmployerProfile } from '@/backend/services/auth.service';
+import { createInterviewMeeting } from '@/lib/google-calendar';
+import { sendCandidateInvitation, sendEmployerInvitation } from '@/lib/email';
+import { getEmployeeApplicationById } from '@/backend/services/employee.service';
 
 /**
  * @openapi
@@ -58,11 +61,95 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
+    const { employeeId, notes, meetingDate, meetingDuration } = body;
 
-    // Add employer ID to request data
+    // Get employee application to retrieve candidate details
+    const employeeApplication = await getEmployeeApplicationById(employeeId);
+    if (!employeeApplication) {
+      return NextResponse.json(
+        { success: false, error: 'Employee application not found' },
+        { status: 404 }
+      );
+    }
+
+    let meetingData = null;
+
+    // If meeting details are provided, try to create the interview meeting
+    if (meetingDate && meetingDuration) {
+      console.log('Creating interview meeting...');
+
+      const meetingDateTime = new Date(meetingDate);
+
+      try {
+        // Create Google Meet link
+        const meetingResult = await createInterviewMeeting({
+          candidateName: employeeApplication.fullName,
+          candidateEmail: employeeApplication.email || '',
+          employerName: employerProfile.companyName || 'Employer',
+          employerEmail: employerProfile.email || user.email || '',
+          meetingDate: meetingDateTime,
+          durationMinutes: meetingDuration,
+        });
+
+        if (!meetingResult.success) {
+          console.error('Failed to create meeting:', meetingResult.error);
+          // Continue without meeting link - request will be created but without calendar invite
+        } else {
+
+          // Calculate meeting end time
+          const meetingEndsAt = new Date(meetingDateTime.getTime() + meetingDuration * 60 * 1000);
+
+          meetingData = {
+            meetingLink: meetingResult.meetingLink,
+            meetingDate: meetingDateTime,
+            meetingDuration,
+            meetingEndsAt,
+          };
+
+          console.log('Meeting created successfully:', meetingData);
+
+          // Send email invitations to both parties
+          if (employeeApplication.email) {
+            const candidateEmailResult = await sendCandidateInvitation({
+              candidateName: employeeApplication.fullName,
+              candidateEmail: employeeApplication.email,
+              employerName: employerProfile.companyName || 'Employer',
+              meetingDate: meetingDateTime,
+              meetingDuration,
+              meetingLink: meetingResult.meetingLink!,
+            });
+
+            if (!candidateEmailResult.success) {
+              console.error('Failed to send candidate email:', candidateEmailResult.error);
+            }
+          }
+
+          const employerEmailResult = await sendEmployerInvitation({
+            candidateName: employeeApplication.fullName,
+            candidateEmail: employeeApplication.email || '',
+            employerName: employerProfile.companyName || 'Employer',
+            employerEmail: employerProfile.email || user.email || '',
+            meetingDate: meetingDateTime,
+            meetingDuration,
+            meetingLink: meetingResult.meetingLink!,
+          });
+
+          if (!employerEmailResult.success) {
+            console.error('Failed to send employer email:', employerEmailResult.error);
+          }
+        }
+      } catch (error) {
+        console.error('Error in meeting creation process:', error);
+        // Continue without meeting - request will be created but without calendar invite
+      }
+    }
+
+    // Add employer ID and meeting data to request data
     const requestData = {
-      ...body,
+      employeeId,
+      notes,
       employerId: employerProfile.id,
+      ...meetingData,
     };
 
     // Create request
@@ -79,7 +166,9 @@ export async function POST(request: NextRequest) {
       {
         success: true,
         data: result.data,
-        message: result.message || 'Request created successfully',
+        message: meetingData
+          ? 'Request created successfully. Interview scheduled and invitations sent.'
+          : 'Request created successfully',
       },
       { status: 201 }
     );
