@@ -86,7 +86,7 @@ export async function POST(request: NextRequest) {
           candidateName: employeeApplication.fullName,
           candidateEmail: employeeApplication.email || '',
           employerName: employerProfile.companyName || 'Employer',
-          employerEmail: employerProfile.email || user.email || '',
+          employerEmail: employerProfile.user.email || user.email || '',
           meetingDate: meetingDateTime,
           durationMinutes: meetingDuration,
         });
@@ -128,7 +128,7 @@ export async function POST(request: NextRequest) {
             candidateName: employeeApplication.fullName,
             candidateEmail: employeeApplication.email || '',
             employerName: employerProfile.companyName || 'Employer',
-            employerEmail: employerProfile.email || user.email || '',
+            employerEmail: employerProfile.user.email || user.email || '',
             meetingDate: meetingDateTime,
             meetingDuration,
             meetingLink: meetingResult.meetingLink!,
