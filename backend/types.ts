@@ -119,8 +119,10 @@ export interface CreateEmployeeRequestData {
   employerId: string;
   notes?: string;
   // Interview scheduling fields
+  meetingLink?: string;
   meetingDate?: Date;
   meetingDuration?: number; // 30, 45, or 60 minutes
+  meetingEndsAt?: Date;
 }
 
 export interface EmployeeRequestWithDetails extends EmployeeRequestData {

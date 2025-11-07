@@ -127,7 +127,6 @@ export async function POST(request: NextRequest) {
 
           const employerEmailResult = await sendEmployerInvitation({
             candidateName: employeeApplication.fullName,
-            candidateEmail: employeeApplication.email || '',
             employerName: employerProfile.companyName || 'Employer',
             companyName: employerProfile.companyName || 'Employer',
             employerEmail: employerProfile.user.email || user.email || '',
