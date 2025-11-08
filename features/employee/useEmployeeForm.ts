@@ -71,7 +71,19 @@ export const useEmployeeForm = (): UseEmployeeFormReturn => {
       }
 
       setSuccess(true);
-      
+
+      // Store submission data in sessionStorage for thank-you page
+      sessionStorage.setItem('submissionData', JSON.stringify({
+        fullName: data.fullName,
+        email: data.email,
+        phone: data.phone,
+        city: data.city,
+        education: data.education,
+        skills: data.skills,
+        hasAvailability: !!data.availableTimeSlots,
+        timestamp: new Date().toISOString(),
+      }));
+
       // Redirect to thank you page after successful submission
       setTimeout(() => {
         router.push('/thank-you');

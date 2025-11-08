@@ -9,6 +9,10 @@ import AvailabilitySelector from '@/components/interview/AvailabilitySelector';
 export default function HomePage() {
   const { submitApplication, loading, error, success, clearError } = useEmployeeForm();
 
+  // Multi-step form state
+  const [currentStep, setCurrentStep] = useState(1);
+  const totalSteps = 5;
+
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
@@ -22,10 +26,12 @@ export default function HomePage() {
   const [resumeFile, setResumeFile] = useState<File | null>(null);
   const [profilePicture, setProfilePicture] = useState<File | null>(null);
   const [availability, setAvailability] = useState<string | null>(null);
+  const [validationError, setValidationError] = useState<string | null>(null);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+    setValidationError(null);
     clearError();
   };
 
@@ -33,6 +39,7 @@ export default function HomePage() {
     if (files.length > 0) {
       setResumeFile(files[0]);
     }
+    setValidationError(null);
     clearError();
   };
 
@@ -40,18 +47,172 @@ export default function HomePage() {
     if (files.length > 0) {
       setProfilePicture(files[0]);
     }
+    setValidationError(null);
     clearError();
   };
 
   const handleAvailabilityChange = (value: string) => {
     setAvailability(value);
+    setValidationError(null);
     clearError();
+  };
+
+  // Validate current step (matches backend validation schema)
+  const validateStep = (step: number): boolean => {
+    setValidationError(null);
+    clearError();
+
+    switch (step) {
+      case 1: // Personal Information
+        // Full Name validation
+        if (!formData.fullName.trim()) {
+          setValidationError('Please enter your full name');
+          return false;
+        }
+        if (formData.fullName.trim().length < 2) {
+          setValidationError('Full name must be at least 2 characters');
+          return false;
+        }
+        if (formData.fullName.length > 100) {
+          setValidationError('Full name is too long (max 100 characters)');
+          return false;
+        }
+        if (!/^[a-zA-Z\s]+$/.test(formData.fullName)) {
+          setValidationError('Full name should only contain letters and spaces');
+          return false;
+        }
+
+        // Email validation (optional but must be valid if provided)
+        if (formData.email.trim()) {
+          const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+          if (!emailRegex.test(formData.email)) {
+            setValidationError('Please enter a valid email address');
+            return false;
+          }
+        }
+
+        // Phone validation
+        if (!formData.phone.trim()) {
+          setValidationError('Please enter your phone number');
+          return false;
+        }
+        if (formData.phone.replace(/[^0-9]/g, '').length < 10) {
+          setValidationError('Phone number must be at least 10 digits');
+          return false;
+        }
+        if (!/^[0-9+\-\s()]+$/.test(formData.phone)) {
+          setValidationError('Invalid phone number format');
+          return false;
+        }
+        return true;
+
+      case 2: // Location & Education
+        // City validation
+        if (!formData.city.trim()) {
+          setValidationError('Please enter your city');
+          return false;
+        }
+        if (formData.city.trim().length < 2) {
+          setValidationError('City name must be at least 2 characters');
+          return false;
+        }
+        if (formData.city.length > 50) {
+          setValidationError('City name is too long (max 50 characters)');
+          return false;
+        }
+
+        // Education validation
+        if (!formData.education.trim()) {
+          setValidationError('Please enter your education details');
+          return false;
+        }
+        if (formData.education.trim().length < 2) {
+          setValidationError('Education information must be at least 2 characters');
+          return false;
+        }
+        if (formData.education.length > 200) {
+          setValidationError('Education information is too long (max 200 characters)');
+          return false;
+        }
+        return true;
+
+      case 3: // Professional Details
+        // Skills validation
+        if (!formData.skills.trim()) {
+          setValidationError('Please list your skills');
+          return false;
+        }
+        if (formData.skills.trim().length < 5) {
+          setValidationError('Please provide at least 5 characters describing your skills');
+          return false;
+        }
+        if (formData.skills.length > 1000) {
+          setValidationError('Skills description is too long (max 1000 characters)');
+          return false;
+        }
+
+        // Experience validation
+        if (!formData.experience.trim()) {
+          setValidationError('Please describe your experience');
+          return false;
+        }
+        if (formData.experience.trim().length < 10) {
+          setValidationError('Please provide at least 10 characters describing your experience');
+          return false;
+        }
+        if (formData.experience.length > 2000) {
+          setValidationError('Experience description is too long (max 2000 characters)');
+          return false;
+        }
+        return true;
+
+      case 4: // Interview Availability (optional)
+        return true;
+
+      case 5: // Upload Documents
+        if (!resumeFile) {
+          setValidationError('Please upload your resume/CV');
+          return false;
+        }
+        return true;
+
+      default:
+        return true;
+    }
+  };
+
+  // Navigate to next step
+  const handleNext = () => {
+    if (validateStep(currentStep)) {
+      setValidationError(null);
+      setCurrentStep((prev) => Math.min(prev + 1, totalSteps));
+      // Smooth scroll to form section
+      setTimeout(() => {
+        const formSection = document.getElementById('application-form');
+        if (formSection) {
+          formSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 100);
+    }
+  };
+
+  // Navigate to previous step
+  const handlePrevious = () => {
+    setValidationError(null);
+    setCurrentStep((prev) => Math.max(prev - 1, 1));
+    // Smooth scroll to form section
+    setTimeout(() => {
+      const formSection = document.getElementById('application-form');
+      if (formSection) {
+        formSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 100);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!resumeFile) {
+    if (!validateStep(5)) {
       return;
     }
 
@@ -218,13 +379,63 @@ export default function HomePage() {
       <section id="application-form" className="py-12 sm:py-16 lg:py-20 px-3 sm:px-4 relative">
         <div className="max-w-3xl mx-auto">
           <div className="glass rounded-xl sm:rounded-2xl p-5 sm:p-8 lg:p-12 shadow-dark-elevation animate-slide-up">
+            {/* Header */}
             <div className="text-center mb-6 sm:mb-8">
               <h2 className="text-2xl sm:text-3xl lg:text-4xl font-display font-bold text-brand-light mb-2 sm:mb-3">
                 Submit Your Application
               </h2>
               <p className="text-sm sm:text-base text-gray-400">
-                Fill in your details and upload your CV to get started
+                Step {currentStep} of {totalSteps}
               </p>
+            </div>
+
+            {/* Progress Bar */}
+            <div className="mb-8">
+              <div className="flex justify-between mb-2">
+                <span className="text-xs sm:text-sm font-semibold text-brand-light">
+                  Progress
+                </span>
+                <span className="text-xs sm:text-sm font-semibold text-brand-yellow">
+                  {Math.round(((currentStep - 1) / totalSteps) * 100)}%
+                </span>
+              </div>
+              <div className="w-full bg-dark-400 rounded-full h-3 overflow-hidden">
+                <div
+                  className="h-full bg-gradient-to-r from-brand-yellow to-yellow-400 rounded-full transition-all duration-500 ease-out shadow-yellow-glow"
+                  style={{ width: `${((currentStep - 1) / totalSteps) * 100}%` }}
+                ></div>
+              </div>
+
+              {/* Step Indicators */}
+              <div className="flex justify-between mt-4">
+                {[1, 2, 3, 4, 5].map((step) => (
+                  <div
+                    key={step}
+                    className={`flex flex-col items-center ${
+                      step <= currentStep ? 'opacity-100' : 'opacity-40'
+                    }`}
+                  >
+                    <div
+                      className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-300 ${
+                        step < currentStep
+                          ? 'bg-accent-green text-white'
+                          : step === currentStep
+                          ? 'bg-brand-yellow text-brand-dark shadow-yellow-glow scale-110'
+                          : 'bg-dark-400 text-gray-400 border-2 border-dark-300'
+                      }`}
+                    >
+                      {step < currentStep ? '✓' : step}
+                    </div>
+                    <span className="text-xs mt-1 text-gray-400 hidden sm:block">
+                      {step === 1 && 'Personal'}
+                      {step === 2 && 'Location'}
+                      {step === 3 && 'Skills'}
+                      {step === 4 && 'Availability'}
+                      {step === 5 && 'Documents'}
+                    </span>
+                  </div>
+                ))}
+              </div>
             </div>
 
             {/* Success Message */}
@@ -273,9 +484,32 @@ export default function HomePage() {
               </div>
             )}
 
+            {/* Validation Error Message (Soft) */}
+            {validationError && (
+              <div className="mb-4 sm:mb-6 bg-accent-orange/10 border border-accent-orange/50 rounded-lg p-3 sm:p-4 animate-slide-down">
+                <div className="flex items-center gap-2">
+                  <svg
+                    className="w-4 h-4 sm:w-5 sm:h-5 text-accent-orange flex-shrink-0"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                  <p className="text-xs sm:text-sm text-accent-orange font-medium">{validationError}</p>
+                </div>
+              </div>
+            )}
+
             <form onSubmit={handleSubmit} className="space-y-5 sm:space-y-6">
-              {/* Personal Information */}
-              <div className="space-y-4 sm:space-y-6">
+              {/* Step 1: Personal Information */}
+              {currentStep === 1 && (
+              <div className="space-y-4 sm:space-y-6 animate-fade-in">
                 <h3 className="text-base sm:text-lg font-semibold text-brand-light flex items-center gap-2">
                   <span className="w-7 h-7 sm:w-8 sm:h-8 bg-brand-yellow rounded-full flex items-center justify-center text-brand-dark text-xs sm:text-sm font-bold flex-shrink-0">
                     1
@@ -301,13 +535,12 @@ export default function HomePage() {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                   <Input
-                    label="Email Address"
+                    label="Email Address (Optional)"
                     type="email"
                     name="email"
                     value={formData.email}
                     onChange={handleInputChange}
                     placeholder="john@example.com"
-                    required
                     fullWidth
                     icon={
                       <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -333,9 +566,11 @@ export default function HomePage() {
                   />
                 </div>
               </div>
+              )}
 
-              {/* Location & Education */}
-              <div className="space-y-4 sm:space-y-6">
+              {/* Step 2: Location & Education */}
+              {currentStep === 2 && (
+              <div className="space-y-4 sm:space-y-6 animate-fade-in">
                 <h3 className="text-base sm:text-lg font-semibold text-brand-light flex items-center gap-2">
                   <span className="w-7 h-7 sm:w-8 sm:h-8 bg-brand-yellow rounded-full flex items-center justify-center text-brand-dark text-xs sm:text-sm font-bold flex-shrink-0">
                     2
@@ -379,9 +614,11 @@ export default function HomePage() {
                   />
                 </div>
               </div>
+              )}
 
-              {/* Professional Details */}
-              <div className="space-y-4 sm:space-y-6">
+              {/* Step 3: Professional Details */}
+              {currentStep === 3 && (
+              <div className="space-y-4 sm:space-y-6 animate-fade-in">
                 <h3 className="text-base sm:text-lg font-semibold text-brand-light flex items-center gap-2">
                   <span className="w-7 h-7 sm:w-8 sm:h-8 bg-brand-yellow rounded-full flex items-center justify-center text-brand-dark text-xs sm:text-sm font-bold flex-shrink-0">
                     3
@@ -419,9 +656,11 @@ export default function HomePage() {
                   />
                 </div>
               </div>
+              )}
 
-              {/* Interview Availability */}
-              <div className="space-y-4 sm:space-y-6">
+              {/* Step 4: Interview Availability */}
+              {currentStep === 4 && (
+              <div className="space-y-4 sm:space-y-6 animate-fade-in">
                 <h3 className="text-base sm:text-lg font-semibold text-brand-light flex items-center gap-2">
                   <span className="w-7 h-7 sm:w-8 sm:h-8 bg-brand-yellow rounded-full flex items-center justify-center text-brand-dark text-xs sm:text-sm font-bold flex-shrink-0">
                     4
@@ -435,9 +674,11 @@ export default function HomePage() {
                   disabled={loading}
                 />
               </div>
+              )}
 
-              {/* File Uploads */}
-              <div className="space-y-4 sm:space-y-6">
+              {/* Step 5: File Uploads */}
+              {currentStep === 5 && (
+              <div className="space-y-4 sm:space-y-6 animate-fade-in">
                 <h3 className="text-base sm:text-lg font-semibold text-brand-light flex items-center gap-2">
                   <span className="w-7 h-7 sm:w-8 sm:h-8 bg-brand-yellow rounded-full flex items-center justify-center text-brand-dark text-xs sm:text-sm font-bold flex-shrink-0">
                     5
@@ -462,19 +703,52 @@ export default function HomePage() {
                   helperText="Accepted formats: JPG, PNG (Max 2MB)"
                 />
               </div>
+              )}
 
-              {/* Submit Button */}
-              <div className="pt-4 sm:pt-6">
-                <Button
-                  type="submit"
-                  variant="primary"
-                  size="lg"
-                  fullWidth
-                  loading={loading}
-                >
-                  <span className="hidden sm:inline">{loading ? 'Submitting Application...' : 'Submit Application'}</span>
-                  <span className="sm:hidden">{loading ? 'Submitting...' : 'Submit'}</span>
-                </Button>
+              {/* Navigation Buttons */}
+              <div className="flex gap-4 pt-6 sm:pt-8">
+                {currentStep > 1 && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="lg"
+                    onClick={handlePrevious}
+                    disabled={loading}
+                    className="flex-1"
+                  >
+                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                    </svg>
+                    Previous
+                  </Button>
+                )}
+
+                {currentStep < totalSteps ? (
+                  <Button
+                    type="button"
+                    variant="primary"
+                    size="lg"
+                    onClick={handleNext}
+                    disabled={loading}
+                    className={currentStep === 1 ? 'w-full' : 'flex-1'}
+                  >
+                    Next
+                    <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </Button>
+                ) : (
+                  <Button
+                    type="submit"
+                    variant="primary"
+                    size="lg"
+                    loading={loading}
+                    className="flex-1"
+                  >
+                    <span className="hidden sm:inline">{loading ? 'Submitting Application...' : 'Submit Application'}</span>
+                    <span className="sm:hidden">{loading ? 'Submitting...' : 'Submit'}</span>
+                  </Button>
+                )}
               </div>
             </form>
           </div>
