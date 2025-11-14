@@ -263,9 +263,9 @@ export default function HomePage() {
                     Start Application
                   </Button>
                 </a>
-                <Link href="/login">
+                <Link href="/employers">
                   <Button variant="outline" size="lg" className="w-full sm:w-auto">
-                    Employer Login
+                    For Employers
                   </Button>
                 </Link>
               </div>
@@ -756,10 +756,10 @@ export default function HomePage() {
           {/* Employer CTA */}
           <div className="mt-8 sm:mt-10 lg:mt-12 text-center animate-fade-in">
             <p className="text-sm sm:text-base text-gray-400 mb-3 sm:mb-4">Are you an employer looking for talent?</p>
-            <Link href="/login">
+            <Link href="/employers">
               <Button variant="outline" size="md">
-                <span className="hidden sm:inline">Employer Login →</span>
-                <span className="sm:hidden">Employer Login</span>
+                <span className="hidden sm:inline">Learn More →</span>
+                <span className="sm:hidden">Learn More</span>
               </Button>
             </Link>
           </div>

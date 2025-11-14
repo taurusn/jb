@@ -38,9 +38,11 @@ const Navbar: React.FC<NavbarProps> = ({ isAuthenticated = false, onLogout }) =>
 
   return (
     <nav
+      dir="ltr"
       className={`
         fixed top-0 left-0 right-0 z-50
         transition-all duration-300
+        font-sans
         ${
           isScrolled
             ? 'bg-brand-dark/95 backdrop-blur-lg border-b border-brand-yellow/20 shadow-dark-elevation'
@@ -67,21 +69,53 @@ const Navbar: React.FC<NavbarProps> = ({ isAuthenticated = false, onLogout }) =>
           <div className="hidden md:flex items-center gap-6">
             {/* Navigation Links */}
             <div className="flex items-center gap-2">
-              <Link
-                href={isAuthenticated ? "/employer/dashboard" : "/"}
-                className={`
-                  px-4 py-2 rounded-lg font-medium text-sm
-                  transition-all duration-300
-                  ${
-                    isActive(isAuthenticated ? '/employer/dashboard' : '/')
-                      ? 'text-brand-yellow bg-brand-yellow/10'
-                      : 'text-brand-light hover:text-brand-yellow hover:bg-dark-400'
-                  }
-                `}
-              >
-                {isAuthenticated ? 'Dashboard' : 'Home'}
-              </Link>
-
+              {isAuthenticated ? (
+                <Link
+                  href="/employer/dashboard"
+                  className={`
+                    px-4 py-2 rounded-lg font-medium text-sm
+                    transition-all duration-300
+                    ${
+                      isActive('/employer/dashboard')
+                        ? 'text-brand-yellow bg-brand-yellow/10'
+                        : 'text-brand-light hover:text-brand-yellow hover:bg-dark-400'
+                    }
+                  `}
+                >
+                  Dashboard
+                </Link>
+              ) : (
+                <>
+                  <Link
+                    href="/"
+                    className={`
+                      px-4 py-2 rounded-lg font-medium text-sm
+                      transition-all duration-300
+                      ${
+                        isActive('/')
+                          ? 'text-brand-yellow bg-brand-yellow/10'
+                          : 'text-brand-light hover:text-brand-yellow hover:bg-dark-400'
+                      }
+                    `}
+                  >
+                    For Job Seekers
+                  </Link>
+                  <Link
+                    href="/employers"
+                    className={`
+                      px-4 py-2 rounded-lg font-medium text-sm
+                      transition-all duration-300
+                      ${
+                        isActive('/employers')
+                          ? 'text-brand-yellow bg-brand-yellow/10'
+                          : 'text-brand-light hover:text-brand-yellow hover:bg-dark-400'
+                      }
+                    `}
+                  >
+                    For Employers
+                  </Link>
+                </>
+              )}
             </div>
 
             {/* Auth Buttons */}
@@ -99,7 +133,7 @@ const Navbar: React.FC<NavbarProps> = ({ isAuthenticated = false, onLogout }) =>
                   variant="primary"
                   size="sm"
                 >
-                  Employer Login
+                  Login
                 </Button>
               </Link>
             )}
@@ -157,20 +191,53 @@ const Navbar: React.FC<NavbarProps> = ({ isAuthenticated = false, onLogout }) =>
         `}
       >
         <div className="px-4 pt-2 pb-4 space-y-2 bg-brand-dark/95 backdrop-blur-lg border-t border-brand-yellow/10">
-          <Link
-            href={isAuthenticated ? "/employer/dashboard" : "/"}
-            className={`
-              block px-4 py-3 rounded-lg font-medium
-              transition-all duration-300
-              ${
-                isActive(isAuthenticated ? '/employer/dashboard' : '/')
-                  ? 'text-brand-yellow bg-brand-yellow/10'
-                  : 'text-brand-light hover:text-brand-yellow hover:bg-dark-400'
-              }
-            `}
-          >
-            {isAuthenticated ? 'Dashboard' : 'Home'}
-          </Link>
+          {isAuthenticated ? (
+            <Link
+              href="/employer/dashboard"
+              className={`
+                block px-4 py-3 rounded-lg font-medium
+                transition-all duration-300
+                ${
+                  isActive('/employer/dashboard')
+                    ? 'text-brand-yellow bg-brand-yellow/10'
+                    : 'text-brand-light hover:text-brand-yellow hover:bg-dark-400'
+                }
+              `}
+            >
+              Dashboard
+            </Link>
+          ) : (
+            <>
+              <Link
+                href="/"
+                className={`
+                  block px-4 py-3 rounded-lg font-medium
+                  transition-all duration-300
+                  ${
+                    isActive('/')
+                      ? 'text-brand-yellow bg-brand-yellow/10'
+                      : 'text-brand-light hover:text-brand-yellow hover:bg-dark-400'
+                  }
+                `}
+              >
+                For Job Seekers
+              </Link>
+              <Link
+                href="/employers"
+                className={`
+                  block px-4 py-3 rounded-lg font-medium
+                  transition-all duration-300
+                  ${
+                    isActive('/employers')
+                      ? 'text-brand-yellow bg-brand-yellow/10'
+                      : 'text-brand-light hover:text-brand-yellow hover:bg-dark-400'
+                  }
+                `}
+              >
+                For Employers
+              </Link>
+            </>
+          )}
 
           <div className="pt-2">
             {isAuthenticated ? (
@@ -189,7 +256,7 @@ const Navbar: React.FC<NavbarProps> = ({ isAuthenticated = false, onLogout }) =>
                   size="md"
                   fullWidth
                 >
-                  Employer Login
+                  Login
                 </Button>
               </Link>
             )}

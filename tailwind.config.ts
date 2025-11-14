@@ -52,6 +52,7 @@ const config: Config = {
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],
         display: ['Space Grotesk', 'Inter', 'sans-serif'],
+        arabic: ['var(--font-ibm-plex-arabic)', 'system-ui', 'sans-serif'],
       },
       animation: {
         // Vibrant animations for movement

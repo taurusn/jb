@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { Inter, Space_Grotesk } from 'next/font/google';
+import { Inter, Space_Grotesk, IBM_Plex_Sans_Arabic } from 'next/font/google';
 import './globals.css';
 
 const inter = Inter({
@@ -11,6 +11,13 @@ const inter = Inter({
 const spaceGrotesk = Space_Grotesk({
   variable: '--font-space-grotesk',
   subsets: ['latin'],
+  display: 'swap',
+});
+
+const ibmPlexArabic = IBM_Plex_Sans_Arabic({
+  variable: '--font-ibm-plex-arabic',
+  subsets: ['arabic'],
+  weight: ['100', '200', '300', '400', '500', '600', '700'],
   display: 'swap',
 });
 
@@ -39,7 +46,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${inter.variable} ${spaceGrotesk.variable}`}>
+    <html lang="en" className={`${inter.variable} ${spaceGrotesk.variable} ${ibmPlexArabic.variable}`}>
       <body className="antialiased">
         {children}
       </body>
