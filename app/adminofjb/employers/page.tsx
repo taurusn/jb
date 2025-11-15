@@ -286,6 +286,7 @@ export default function EmployersPage() {
               {/* Contact */}
               {employer.profile?.phoneNumber && (
                 <ContactCard
+                  name={employer.profile?.contactName || employer.user.email}
                   email={employer.user.email}
                   phone={employer.profile.phoneNumber}
                 />

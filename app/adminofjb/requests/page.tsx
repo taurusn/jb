@@ -223,6 +223,7 @@ export default function RequestsPage() {
                   <p className="text-sm text-gray-400 mt-1">📍 {request.employee.city}</p>
                 </div>
                 <ContactCard
+                  name={request.employee.fullName}
                   email={request.employee.email}
                   phone={request.employee.phoneNumber}
                 />
@@ -244,6 +245,7 @@ export default function RequestsPage() {
                 </div>
                 {request.employer.profile?.phoneNumber && (
                   <ContactCard
+                    name={request.employer.profile?.contactName || request.employer.user.email}
                     email={request.employer.user.email}
                     phone={request.employer.profile.phoneNumber}
                   />

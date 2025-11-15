@@ -174,6 +174,7 @@ export default function EmployerDetailPage({
                     Contact Information
                   </label>
                   <ContactCard
+                    name={employer.profile.contactName || employer.user.email}
                     email={employer.user.email}
                     phone={employer.profile.phoneNumber}
                   />
@@ -441,12 +442,11 @@ export default function EmployerDetailPage({
         }? This will also delete their account and all ${
           employer.requests.length
         } associated requests. This action cannot be undone.`}
-        confirmLabel="Delete"
-        cancelLabel="Cancel"
+        confirmText="Delete"
+        cancelText="Cancel"
         onConfirm={handleDelete}
         onCancel={() => setShowDeleteDialog(false)}
-        isLoading={deleting}
-        variant="danger"
+        danger={true}
       />
 
       <style jsx>{`

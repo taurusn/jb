@@ -241,6 +241,7 @@ export default function RequestDetailPage({ params }: { params: Promise<{ id: st
               <div className="md:col-span-2">
                 <label className="text-sm text-gray-400 block mb-2">Contact Information</label>
                 <ContactCard
+                  name={request.employee.fullName}
                   email={request.employee.email}
                   phone={request.employee.phoneNumber}
                 />
@@ -291,6 +292,7 @@ export default function RequestDetailPage({ params }: { params: Promise<{ id: st
                 <div className="md:col-span-2">
                   <label className="text-sm text-gray-400 block mb-2">Contact Information</label>
                   <ContactCard
+                    name={request.employer.profile?.contactName || request.employer.user.email}
                     email={request.employer.user.email}
                     phone={request.employer.profile.phoneNumber}
                   />
@@ -446,12 +448,11 @@ export default function RequestDetailPage({ params }: { params: Promise<{ id: st
         isOpen={showDeleteDialog}
         title="Delete Request"
         message="Are you sure you want to delete this request? This action cannot be undone."
-        confirmLabel="Delete"
-        cancelLabel="Cancel"
+        confirmText="Delete"
+        cancelText="Cancel"
         onConfirm={handleDelete}
         onCancel={() => setShowDeleteDialog(false)}
-        isLoading={deleting}
-        variant="danger"
+        danger={true}
       />
 
       <style jsx>{`

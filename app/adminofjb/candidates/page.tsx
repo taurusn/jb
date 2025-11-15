@@ -350,7 +350,7 @@ export default function CandidatesPage() {
               )}
 
               {/* Contact */}
-              <ContactCard email={candidate.email} phone={candidate.phoneNumber} />
+              <ContactCard name={candidate.fullName} email={candidate.email} phone={candidate.phoneNumber} />
 
               {/* View Button */}
               <button

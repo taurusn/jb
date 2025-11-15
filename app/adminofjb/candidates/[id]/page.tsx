@@ -205,7 +205,7 @@ export default function CandidateDetailPage({
 
               <div className="md:col-span-2">
                 <label className="text-sm text-gray-400 block mb-2">Contact Information</label>
-                <ContactCard email={candidate.email} phone={candidate.phoneNumber} />
+                <ContactCard name={candidate.fullName} email={candidate.email} phone={candidate.phoneNumber} />
               </div>
             </div>
           </div>
@@ -423,12 +423,11 @@ export default function CandidateDetailPage({
         isOpen={showDeleteDialog}
         title="Delete Candidate"
         message={`Are you sure you want to delete ${candidate.fullName}? This will also delete all associated employer requests. This action cannot be undone.`}
-        confirmLabel="Delete"
-        cancelLabel="Cancel"
+        confirmText="Delete"
+        cancelText="Cancel"
         onConfirm={handleDelete}
         onCancel={() => setShowDeleteDialog(false)}
-        isLoading={deleting}
-        variant="danger"
+        danger={true}
       />
 
       <style jsx>{`
