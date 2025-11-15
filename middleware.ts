@@ -4,10 +4,12 @@ import { verifyTokenEdge } from '@/lib/auth-edge';
 
 /**
  * Middleware to protect routes
- * 
+ *
  * Protected routes:
  * - /employer/* - Only accessible to authenticated employers
  * - /api/employer/* - Only accessible to authenticated employers
+ * - /adminofjb/* - Only accessible to authenticated admins
+ * - /api/adminofjb/* - Only accessible to authenticated admins
  */
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -16,13 +18,23 @@ export async function middleware(request: NextRequest) {
   console.log('Path:', pathname);
   console.log('Cookies:', request.cookies.getAll());
 
+  // Exclude login pages from authentication
+  const isLoginPage = pathname === '/login' || pathname === '/adminofjb/login';
+  if (isLoginPage) {
+    console.log('Login page - no auth required');
+    return NextResponse.next();
+  }
+
   // Check if route needs protection
   const isEmployerRoute = pathname.startsWith('/employer');
   const isEmployerApiRoute = pathname.startsWith('/api/employer');
-  
-  const requiresAuth = isEmployerRoute || isEmployerApiRoute;
+  const isAdminRoute = pathname.startsWith('/adminofjb');
+  const isAdminApiRoute = pathname.startsWith('/api/adminofjb');
+
+  const requiresAuth = isEmployerRoute || isEmployerApiRoute || isAdminRoute || isAdminApiRoute;
 
   console.log('Requires auth:', requiresAuth);
+  console.log('Is admin route:', isAdminRoute || isAdminApiRoute);
 
   if (!requiresAuth) {
     console.log('No auth required, passing through');
@@ -38,14 +50,17 @@ export async function middleware(request: NextRequest) {
   // If no token, redirect to login (for pages) or return 401 (for API)
   if (!token) {
     console.log('No token - redirecting to login');
-    if (isEmployerApiRoute) {
+    if (isEmployerApiRoute || isAdminApiRoute) {
       return NextResponse.json(
         { success: false, error: 'Unauthorized - No token provided' },
         { status: 401 }
       );
     }
-    
-    const loginUrl = new URL('/login', request.url);
+
+    // Redirect to appropriate login page
+    const loginUrl = isAdminRoute
+      ? new URL('/adminofjb/login', request.url)
+      : new URL('/login', request.url);
     loginUrl.searchParams.set('callbackUrl', pathname);
     return NextResponse.redirect(loginUrl);
   }
@@ -58,28 +73,43 @@ export async function middleware(request: NextRequest) {
 
   if (!decoded) {
     // Invalid token
-    if (isEmployerApiRoute) {
+    if (isEmployerApiRoute || isAdminApiRoute) {
       return NextResponse.json(
         { success: false, error: 'Unauthorized - Invalid token' },
         { status: 401 }
       );
     }
 
-    const loginUrl = new URL('/login', request.url);
+    const loginUrl = isAdminRoute
+      ? new URL('/adminofjb/login', request.url)
+      : new URL('/login', request.url);
     loginUrl.searchParams.set('callbackUrl', pathname);
     return NextResponse.redirect(loginUrl);
   }
 
-  // Check if user has employer role
-  if (decoded.role !== 'EMPLOYER' && decoded.role !== 'ADMIN') {
-    if (isEmployerApiRoute) {
-      return NextResponse.json(
-        { success: false, error: 'Forbidden - Insufficient permissions' },
-        { status: 403 }
-      );
+  // Role-based access control
+  if (isAdminRoute || isAdminApiRoute) {
+    // Admin routes require ADMIN role only
+    if (decoded.role !== 'ADMIN') {
+      if (isAdminApiRoute) {
+        return NextResponse.json(
+          { success: false, error: 'Forbidden - Admin access required' },
+          { status: 403 }
+        );
+      }
+      return NextResponse.redirect(new URL('/', request.url));
     }
-
-    return NextResponse.redirect(new URL('/', request.url));
+  } else if (isEmployerRoute || isEmployerApiRoute) {
+    // Employer routes require EMPLOYER role (admins can also access)
+    if (decoded.role !== 'EMPLOYER' && decoded.role !== 'ADMIN') {
+      if (isEmployerApiRoute) {
+        return NextResponse.json(
+          { success: false, error: 'Forbidden - Insufficient permissions' },
+          { status: 403 }
+        );
+      }
+      return NextResponse.redirect(new URL('/', request.url));
+    }
   }
 
   // Add user info to request headers for downstream use
@@ -103,5 +133,7 @@ export const config = {
   matcher: [
     '/employer/:path*',
     '/api/employer/:path*',
+    '/adminofjb/:path*',
+    '/api/adminofjb/:path*',
   ],
 };

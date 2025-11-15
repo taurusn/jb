@@ -75,12 +75,14 @@ export default function EmployersPage() {
               </div>
 
               <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-brand-light mb-6 leading-tight">
-                اعثر على{' '}
-                <span className="text-gradient">أفضل المواهب</span>
+                موظفك جاهز..{' '}
+                <span className="text-gradient">إنقل كفالته!</span>
               </h1>
 
               <p className="text-lg sm:text-xl text-gray-400 mb-8 max-w-2xl mx-auto lg:mx-0 leading-relaxed">
-                تواصل مباشرة مع المرشحين المؤهلين الذين يبحثون بنشاط عن فرص. قم بتبسيط عملية التوظيف الخاصة بك من خلال الجدولة المتكاملة والملفات التعريفية التفصيلية والتواصل الفوري.
+                تبحث عن موظف لمطعمك أو مقهاك؟
+موظفين بخبرة، قد اشتغلوا قبل في القطاع، جاهزين للعمل مباشرة، وينقصهم فقط نقل الإقامة إلى منشأتك.
+مع منصتنا… تختار، تتواصل، وتوظّف خلال أيام.
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">

@@ -45,6 +45,63 @@ See project documentation for detailed admin implementation plan.
 - CV upload with Cloudinary integration
 - Email notifications via Resend
 
+## Database Configuration
+
+The project supports **flexible database configuration** with easy toggling between local PostgreSQL and Supabase:
+
+### Current Setup
+- **Development**: Toggle between local PostgreSQL and Supabase via `.env`
+- **Testing**: Supabase PostgreSQL (test deployment before production)
+- **Production**: Supabase PostgreSQL (configured in Vercel)
+
+### Supabase Integration
+- **Database**: `postgres` database at `db.dnqytwjcdobhwiyyqdwe.supabase.co`
+- **ORM**: Prisma (no Supabase client library needed)
+- **Schema**: Fully migrated and matches local development
+- **Seeding**: Test accounts and sample data available
+
+### Switching Between Databases
+
+**To use Local PostgreSQL** (default for development):
+Edit `.env` and ensure local DATABASE_URL is uncommented:
+```env
+# LOCAL DATABASE (for development)
+DATABASE_URL="postgresql://postgres:password@localhost:5432/job_platform?schema=public"
+
+# SUPABASE DATABASE (for testing deployment before production)
+# DATABASE_URL="postgresql://postgres:password@db.dnqytwjcdobhwiyyqdwe.supabase.co:5432/postgres"
+```
+
+**To use Supabase** (for testing):
+Edit `.env` and swap the comments:
+```env
+# LOCAL DATABASE (for development)
+# DATABASE_URL="postgresql://postgres:password@localhost:5432/job_platform?schema=public"
+
+# SUPABASE DATABASE (for testing deployment before production)
+DATABASE_URL="postgresql://postgres:password@db.dnqytwjcdobhwiyyqdwe.supabase.co:5432/postgres"
+```
+
+**After switching databases:**
+1. Restart dev server: `npm run dev`
+2. If needed, run migrations: `npx prisma migrate deploy`
+3. If database is empty, seed it: `npx prisma db seed`
+
+### Seeded Test Accounts (Supabase)
+When seeding, the following test accounts are created:
+
+**Employers:**
+- Email: `employer@test.com` / Password: `password123`
+- Email: `hr@company.com` / Password: `password123`
+
+**Admin:**
+- Email: `admin@jobplatform.com` / Password: `Admin@123456`
+- Access: `/adminofjb/login` (planned feature)
+
+**Sample Data:**
+- 3 job seeker applications (Ahmed, Fatima, Mohammed)
+- Platform settings configured
+
 ## Development Commands
 
 ### Development
@@ -64,6 +121,8 @@ npx prisma migrate deploy      # Apply migrations in production
 npx prisma db seed             # Manually seed database
 npx prisma studio              # Open Prisma Studio GUI
 ```
+
+**Note:** When running `npm run deploy:db`, make sure no dev server is running to avoid file locking issues. Stop the dev server first with Ctrl+C.
 
 ### Testing
 The project has Jest configured with Testing Library but no test scripts are currently defined in package.json. To run tests, you would use:
@@ -213,7 +272,10 @@ Key constraint: `@@unique([employeeId, employerId])` prevents duplicate requests
 
 **Environment Variables:**
 Required:
-- `DATABASE_URL` - PostgreSQL connection string
+- `DATABASE_URL` - PostgreSQL connection string (local or Supabase)
+  - Local: `postgresql://postgres:password@localhost:5432/job_platform?schema=public`
+  - Supabase: `postgresql://postgres:password@db.dnqytwjcdobhwiyyqdwe.supabase.co:5432/postgres`
+- `DATABASE_URL_DIRECT` - Direct connection for migrations (if using connection pooling)
 - `JWT_SECRET` - Secret key for JWT signing
 - `JWT_EXPIRES_IN` - Token expiration (default: 7d)
 
@@ -223,6 +285,11 @@ Optional:
 - `RESEND_API_KEY` - For email notifications
 - `UPLOAD_DIR` - Local file storage directory (default: ./public/uploads)
 - `MAX_FILE_SIZE` - Max upload size in bytes (default: 5MB)
+
+**Database Environment Files:**
+- `.env` - Local development (toggle between local/Supabase here)
+- `.env.production` - Production config (uses Supabase)
+- `.env.example` - Template with placeholder values
 
 ## Common Development Workflows
 
@@ -257,6 +324,20 @@ Optional:
 2. Run `npx prisma migrate dev --name test-change`
 3. Check Prisma Studio: `npx prisma studio`
 4. Rollback: delete migration file and run `npx prisma migrate reset` (CAUTION: deletes all data)
+
+### Switching Database for Testing
+1. Stop dev server (Ctrl+C)
+2. Edit `.env` to toggle DATABASE_URL (comment/uncomment)
+3. Run `npx prisma migrate deploy` (if switching to fresh database)
+4. Run `npx prisma db seed` (if database is empty)
+5. Start dev server: `npm run dev`
+
+### Deploying to Vercel with Supabase
+1. Go to Vercel project settings
+2. Add environment variable:
+   - `DATABASE_URL` = `postgresql://postgres:password@db.dnqytwjcdobhwiyyqdwe.supabase.co:5432/postgres`
+3. Deploy - migrations run automatically via `build:vercel` script
+4. Seed if needed via Vercel CLI: `vercel env pull && npx prisma db seed`
 
 ## Design System
 

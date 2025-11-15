@@ -20,9 +20,10 @@ model User {
   role          Role            @default(EMPLOYER)
   createdAt     DateTime        @default(now()) @map("created_at")
   updatedAt     DateTime        @updatedAt @map("updated_at")
-  
+
   // Relations
   employerProfile EmployerProfile?
+  auditLogs       AuditLog[]
 
   @@map("users")
 }
@@ -93,6 +94,9 @@ model EmployeeRequest {
   meetingDuration Int?      @map("meeting_duration") // in minutes (30, 45, 60)
   meetingEndsAt   DateTime? @map("meeting_ends_at") // Auto-calculated: meetingDate + duration
 
+  // Admin Notes (JSON array of notes with timestamps)
+  adminNotes      String?   @map("admin_notes") @db.Text
+
   // Relations
   employee    EmployeeApplication   @relation(fields: [employeeId], references: [id], onDelete: Cascade)
   employer    EmployerProfile       @relation(fields: [employerId], references: [id], onDelete: Cascade)
@@ -100,6 +104,42 @@ model EmployeeRequest {
   // Unique constraint: prevents duplicate requests
   @@unique([employeeId, employerId])
   @@map("employee_requests")
+}
+
+// ============================================
+// AUDIT LOG MODEL (For Admin Activity Tracking)
+// ============================================
+model AuditLog {
+  id         String   @id @default(uuid())
+  adminId    String   @map("admin_id")
+  action     String   // "DELETE_CANDIDATE", "UPDATE_REQUEST_STATUS", etc.
+  entityType String   @map("entity_type") // "CANDIDATE", "EMPLOYER", "REQUEST", "SETTINGS"
+  entityId   String   @map("entity_id")
+  details    String?  @db.Text // JSON string with action details
+  ipAddress  String?  @map("ip_address")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  // Relations
+  admin      User     @relation(fields: [adminId], references: [id], onDelete: Cascade)
+
+  @@map("audit_logs")
+}
+
+// ============================================
+// PLATFORM SETTINGS MODEL
+// ============================================
+model PlatformSettings {
+  id                    String   @id @default(uuid())
+  maintenanceMode       Boolean  @default(false) @map("maintenance_mode")
+  allowNewRegistrations Boolean  @default(true) @map("allow_new_registrations")
+  allowNewApplications  Boolean  @default(true) @map("allow_new_applications")
+  platformName          String   @default("Job Platform") @map("platform_name")
+  supportEmail          String?  @map("support_email")
+  supportPhone          String?  @map("support_phone")
+  updatedAt             DateTime @updatedAt @map("updated_at")
+  updatedBy             String?  @map("updated_by") // Admin user ID
+
+  @@map("platform_settings")
 }
 
 // ============================================

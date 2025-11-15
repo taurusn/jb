@@ -55,6 +55,42 @@ async function main() {
   console.log(`   - ${employer1.email} (password: password123)`);
   console.log(`   - ${employer2.email} (password: password123)`);
 
+  // Create admin account
+  const adminPasswordHash = await bcrypt.hash('Admin@123456', 10);
+  const admin = await prisma.user.upsert({
+    where: { email: 'admin@jobplatform.com' },
+    update: {
+      role: 'ADMIN',
+      passwordHash: adminPasswordHash,
+    },
+    create: {
+      email: 'admin@jobplatform.com',
+      passwordHash: adminPasswordHash,
+      role: 'ADMIN',
+    },
+  });
+
+  console.log('✅ Created admin account:');
+  console.log(`   - ${admin.email} (password: Admin@123456)`);
+  console.log('   ⚠️  IMPORTANT: Change this password after first login!');
+
+  // Create default platform settings
+  const settings = await prisma.platformSettings.upsert({
+    where: { id: 'default' },
+    update: {},
+    create: {
+      id: 'default',
+      maintenanceMode: false,
+      allowNewRegistrations: true,
+      allowNewApplications: true,
+      platformName: 'Job Platform',
+      supportEmail: 'support@jobplatform.com',
+      supportPhone: '+966 50 123 4567',
+    },
+  });
+
+  console.log('✅ Created default platform settings');
+
   // Create some sample employee applications
   const employee1 = await prisma.employeeApplication.create({
     data: {
@@ -102,6 +138,12 @@ async function main() {
 
   console.log('\n🎉 Database seeding completed successfully!');
   console.log('\n📝 Test Accounts:');
+  console.log('\n   ADMIN ACCOUNT:');
+  console.log('   Email: admin@jobplatform.com');
+  console.log('   Password: Admin@123456');
+  console.log('   Access: /adminofjb/login');
+  console.log('   ⚠️  Change password after first login!');
+  console.log('\n   EMPLOYER ACCOUNTS:');
   console.log('   Email: employer@test.com');
   console.log('   Password: password123');
   console.log('   ---');
