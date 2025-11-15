@@ -5,6 +5,7 @@ import { existsSync } from 'fs';
 import { getCurrentUser } from '@/lib/auth';
 import { getEmployerProfile } from '@/backend/services/auth.service';
 import cloudinary from '@/lib/cloudinary';
+import { extractPathFromUrl, getSignedUrl, downloadPrivateFile } from '@/lib/supabase-storage';
 
 /**
  * @openapi
@@ -90,6 +91,20 @@ export async function HEAD(request: NextRequest) {
     const { fileParam } = validation;
     console.log('🔍 HEAD request for:', fileParam);
 
+    // Check if this is a Supabase private reference
+    if (fileParam.startsWith('supabase-private://')) {
+      console.log('🔒 Supabase private reference detected - returning OK');
+      // For private references, we trust they exist (will be verified on GET)
+      return new NextResponse(null, { status: 200 });
+    }
+
+    // Check if this is a Supabase Storage URL (public)
+    if (fileParam.includes('.supabase.co/storage/v1/object/public/')) {
+      console.log('🗄️ Supabase Storage URL detected - returning OK');
+      // For Supabase public URLs, return 200 OK since they're publicly accessible
+      return new NextResponse(null, { status: 200 });
+    }
+
     // Check if this is a Cloudinary URL (external URL)
     if (fileParam.startsWith('https://res.cloudinary.com/')) {
       console.log('☁️ Cloudinary URL detected - returning OK');
@@ -129,6 +144,126 @@ export async function GET(request: NextRequest) {
 
     const { fileParam } = validation;
     console.log('🔍 File view request for:', fileParam);
+
+    // Check if this is a Supabase private reference
+    if (fileParam.startsWith('supabase-private://')) {
+      console.log('🔒 Supabase private reference detected, downloading file...');
+
+      try {
+        const pathInfo = extractPathFromUrl(fileParam);
+
+        if (!pathInfo) {
+          console.error('❌ Invalid private reference format');
+          return NextResponse.json(
+            { success: false, error: 'Invalid file reference format' },
+            { status: 400 }
+          );
+        }
+
+        console.log('📝 Extracted path:', pathInfo.path);
+
+        // Download file from private bucket using service role key
+        const fileData = await downloadPrivateFile(pathInfo.path);
+
+        if (!fileData) {
+          console.error('❌ Failed to download file from Supabase');
+          return NextResponse.json(
+            { success: false, error: 'Failed to download file from storage' },
+            { status: 404 }
+          );
+        }
+
+        // Extract file extension from path
+        const fileExtension = pathInfo.path.match(/\.([^./?]+)$/)?.[1] || 'pdf';
+
+        // Set proper content type based on file extension
+        let contentType = fileData.contentType || 'application/pdf';
+        if (fileExtension === 'doc') {
+          contentType = 'application/msword';
+        } else if (fileExtension === 'docx') {
+          contentType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+        } else if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(fileExtension.toLowerCase())) {
+          contentType = `image/${fileExtension.toLowerCase() === 'jpg' ? 'jpeg' : fileExtension.toLowerCase()}`;
+        }
+
+        console.log('✅ Successfully downloaded private file from Supabase');
+
+        // Return the file content with proper headers
+        return new NextResponse(fileData.data, {
+          status: 200,
+          headers: {
+            'Content-Type': contentType,
+            'Content-Disposition': `inline; filename="document.${fileExtension}"`,
+            'Cache-Control': 'private, max-age=3600', // Private cache for sensitive files
+            'Access-Control-Allow-Origin': '*',
+            'X-Content-Type-Options': 'nosniff',
+          },
+        });
+      } catch (error) {
+        console.error('❌ Error downloading private file:', error);
+        return NextResponse.json(
+          { success: false, error: 'Failed to load file from storage' },
+          { status: 500 }
+        );
+      }
+    }
+
+    // Check if this is a Supabase Storage URL (public)
+    if (fileParam.includes('.supabase.co/storage/v1/object/public/')) {
+      console.log('🗄️ Supabase Storage URL detected, proxying file...');
+
+      try {
+        // Supabase public URLs are already publicly accessible, just proxy them
+        console.log('📡 Fetching directly from Supabase URL:', fileParam);
+        const response = await fetch(fileParam);
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('❌ Failed to fetch from Supabase:', response.status);
+          console.error('❌ Error details:', errorText);
+          return NextResponse.json(
+            { success: false, error: 'Failed to fetch file from Supabase Storage', details: errorText },
+            { status: response.status }
+          );
+        }
+
+        // Get the file content
+        const fileBuffer = await response.arrayBuffer();
+
+        // Extract file extension from URL
+        const fileExtension = fileParam.match(/\.([^./?]+)(\?|$)/)?.[1] || 'pdf';
+
+        // Set proper content type based on file extension
+        let contentType = 'application/pdf';
+        if (fileExtension === 'doc') {
+          contentType = 'application/msword';
+        } else if (fileExtension === 'docx') {
+          contentType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+        } else if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(fileExtension.toLowerCase())) {
+          contentType = `image/${fileExtension.toLowerCase() === 'jpg' ? 'jpeg' : fileExtension.toLowerCase()}`;
+        }
+
+        console.log('✅ Successfully proxied Supabase file');
+
+        // Return the proxied content with proper headers to force inline display
+        return new NextResponse(fileBuffer, {
+          status: 200,
+          headers: {
+            'Content-Type': contentType,
+            'Content-Disposition': `inline; filename="document.${fileExtension}"`,
+            'Cache-Control': 'public, max-age=3600',
+            'Access-Control-Allow-Origin': '*',
+            'X-Content-Type-Options': 'nosniff',
+          },
+        });
+      } catch (error) {
+        console.error('❌ Error proxying Supabase file:', error);
+        return NextResponse.json(
+          { success: false, error: 'Failed to load file from Supabase Storage' },
+          { status: 500 }
+        );
+      }
+    }
 
     // Check if this is a Cloudinary URL (external URL)
     if (fileParam.startsWith('https://res.cloudinary.com/')) {

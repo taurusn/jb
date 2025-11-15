@@ -2,17 +2,21 @@ import { writeFile, mkdir } from 'fs/promises';
 import path from 'path';
 import { existsSync } from 'fs';
 import { uploadToCloudinary } from './cloudinary';
+import { uploadToSupabase, hasSupabaseStorage } from './supabase-storage';
 
 const UPLOAD_DIR = process.env.UPLOAD_DIR || 'public/uploads';
 const MAX_FILE_SIZE = parseInt(process.env.MAX_FILE_SIZE || '5242880'); // 5MB default
 
-// Check if Cloudinary is configured (use it in both dev and production when available)
+// Check storage providers (priority: Supabase > Cloudinary > Local)
 const hasCloudinary = !!(
   process.env.CLOUDINARY_CLOUD_NAME &&
   process.env.CLOUDINARY_API_KEY &&
   process.env.CLOUDINARY_API_SECRET
 );
-const useCloudinary = hasCloudinary;
+
+// Determine which storage to use (Supabase first, then Cloudinary, then local)
+const useSupabase = hasSupabaseStorage;
+const useCloudinary = !useSupabase && hasCloudinary;
 
 export interface UploadResult {
   success: boolean;
@@ -68,7 +72,7 @@ function validateFile(file: File, type: 'image' | 'document'): { valid: boolean;
 }
 
 /**
- * Upload file (automatically uses Cloudinary if configured, otherwise uses local storage)
+ * Upload file (automatically uses Supabase > Cloudinary > Local storage)
  */
 export async function uploadFile(
   file: File,
@@ -82,14 +86,37 @@ export async function uploadFile(
       return { success: false, error: validation.error };
     }
 
-    console.log(`📁 Upload strategy: ${useCloudinary ? 'Cloudinary (cloud storage)' : 'Local storage (filesystem)'}`);
+    const storageType = useSupabase
+      ? 'Supabase Storage'
+      : useCloudinary
+      ? 'Cloudinary'
+      : 'Local filesystem';
+    console.log(`📁 Upload strategy: ${storageType}`);
 
-    // Use Cloudinary if configured
+    // Use Supabase Storage if configured (Priority #1)
+    if (useSupabase) {
+      console.log('🗄️ Uploading to Supabase Storage...');
+      const folder = subfolder || type;
+      const result = await uploadToSupabase(file, folder, true);
+
+      if (result.success && result.url) {
+        console.log('✅ Supabase upload successful:', result.url);
+        return {
+          success: true,
+          url: result.url,
+        };
+      } else {
+        console.error('❌ Supabase upload failed:', result.error);
+        return { success: false, error: result.error || 'Supabase upload failed' };
+      }
+    }
+
+    // Use Cloudinary if configured (Priority #2)
     if (useCloudinary) {
       console.log('☁️ Uploading to Cloudinary...');
       const cloudFolder = `job-platform/${subfolder || type}`;
       const result = await uploadToCloudinary(file, cloudFolder);
-      
+
       if (result.success && result.url) {
         console.log('✅ Cloudinary upload successful:', result.url);
         return {
@@ -102,7 +129,7 @@ export async function uploadFile(
       }
     }
 
-    // Use local storage (when Cloudinary is not configured)
+    // Use local storage (Priority #3 - fallback when no cloud storage is configured)
     console.log('💾 Using local storage...');
     
     // Create upload directory if it doesn't exist

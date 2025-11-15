@@ -60,3 +60,4 @@ logs
 # Database
 *.db
 *.sqlite
+nul

@@ -206,8 +206,9 @@ lib/                           # Utility libraries
 ├── db.ts                      # Prisma client singleton
 ├── auth.ts                    # JWT helpers (Node.js runtime)
 ├── auth-edge.ts               # JWT helpers (Edge runtime for middleware)
-├── upload.ts                  # File upload handling
-├── cloudinary.ts              # Cloudinary integration
+├── upload.ts                  # File upload handling (auto-detects storage provider)
+├── supabase-storage.ts        # Supabase Storage integration (Priority #1)
+├── cloudinary.ts              # Cloudinary integration (Priority #2)
 ├── google-calendar.ts         # Google Calendar/Meet integration
 ├── email.ts                   # Email sending via Resend
 ├── email-validator.ts         # MX record validation
@@ -255,10 +256,13 @@ EmployeeApplication (job applications)
 Key constraint: `@@unique([employeeId, employerId])` prevents duplicate requests
 
 **4. File Upload Strategy**
-- Local filesystem in development (`UPLOAD_DIR` environment variable)
-- Cloudinary in production (if credentials provided)
+- **Supabase Storage** (Priority #1) - Recommended for production and development
+- **Cloudinary** (Priority #2) - Alternative cloud storage if Supabase not configured
+- **Local filesystem** (Priority #3) - Fallback for development (`UPLOAD_DIR` environment variable)
 - Handled by `lib/upload.ts` (auto-detects available storage)
 - File types: CV (PDF, DOC, DOCX), Profile Pictures (JPEG, PNG)
+- Bucket name: `JB` (configured in Supabase Dashboard)
+- Files organized in folders: `resumes/` and `profiles/`
 
 **5. Interview Scheduling**
 - Google Calendar API integration (`lib/google-calendar.ts`)
@@ -318,8 +322,10 @@ Required:
 
 **Note:** For Vercel and serverless platforms, **always use the Session Pooler URL** (IPv4-compatible). Direct connections won't work on Vercel.
 
-Optional:
-- `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` - For production file uploads
+Optional (but recommended):
+- `NEXT_PUBLIC_SUPABASE_URL` - Supabase project URL (e.g., https://xxx.supabase.co)
+- `SUPABASE_SERVICE_ROLE_KEY` - Supabase service role key for server-side storage operations
+- `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` - Alternative cloud storage (Cloudinary)
 - `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REDIRECT_URI`, `GOOGLE_REFRESH_TOKEN` - For Google Calendar integration
 - `RESEND_API_KEY` - For email notifications
 - `UPLOAD_DIR` - Local file storage directory (default: ./public/uploads)
@@ -370,6 +376,40 @@ Optional:
 3. Run `npx prisma migrate deploy` (if switching to fresh database)
 4. Run `npx prisma db seed` (if database is empty)
 5. Start dev server: `npm run dev`
+
+### Setting Up Supabase Storage
+
+**Creating the Storage Bucket:**
+1. Go to Supabase Dashboard → Storage
+2. Create a new bucket named `JB` (already created)
+3. Set bucket to **Private** (recommended for sensitive data like resumes)
+   - ✅ **Private bucket** - More secure, files require authentication to access
+   - ⚠️ **Public bucket** - Less secure, anyone with URL can access files
+4. The system automatically handles both private and public buckets
+
+**Getting Supabase Credentials:**
+1. Go to Supabase Dashboard → Settings → API
+2. Copy **Project URL** → Add to `.env` as `NEXT_PUBLIC_SUPABASE_URL`
+3. Copy **Service Role Key** (secret!) → Add to `.env` as `SUPABASE_SERVICE_ROLE_KEY`
+4. ⚠️ **Never commit Service Role Key to git** - keep it in `.env.local`
+
+**Folder Structure in Bucket:**
+- `resumes/` - Stores candidate resume files (PDF, DOC, DOCX)
+- `profiles/` - Stores candidate profile pictures (JPG, PNG, etc.)
+
+**Storage Priority:**
+The upload system automatically detects and uses storage in this order:
+1. **Supabase Storage** (if `NEXT_PUBLIC_SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` are set)
+2. **Cloudinary** (if Cloudinary credentials are set)
+3. **Local filesystem** (fallback - files saved to `public/uploads/`)
+
+**Private Bucket Security:**
+When using a private Supabase bucket (recommended):
+- Files are stored with private reference: `supabase-private://JB/path/to/file.pdf`
+- Only authenticated employers can view files through `/api/files/view` endpoint
+- Backend uses service role key to download files securely
+- No direct public URLs - files cannot be accessed without going through your API
+- Configure in `lib/supabase-storage.ts` by setting `IS_PRIVATE_BUCKET = true` (default)
 
 ### Deploying to Vercel with Supabase
 
