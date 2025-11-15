@@ -8,42 +8,46 @@ A full-stack recruitment platform built with Next.js 15, TypeScript, Prisma, and
 
 **Current User Roles:**
 - **Employees** (job seekers) - Public access, no authentication required
-- **Employers** - Authenticated users with dashboard access
+- **Employers** - Authenticated users with dashboard access at `/employer/dashboard`
+- **Admins** - Platform administrators with full oversight at `/adminofjb/*`
 
-**Note:** The database schema includes an `ADMIN` role enum and the middleware allows ADMIN access, but there is currently **no admin interface or admin-specific functionality implemented**. The admin role exists in the schema but is not used in the application.
+## ✅ Admin Dashboard (Implemented)
 
-## 🚀 Planned Future Release: Admin Dashboard
+A comprehensive admin dashboard is now fully implemented at `/adminofjb/*`. This is a separate interface from the employer dashboard with complete platform oversight capabilities.
 
-A comprehensive admin dashboard is planned for future release at `/adminofjb/*`. This is a separate interface from the employer dashboard with the following planned features:
-
-**Planned Admin Features:**
-- **Dashboard Analytics:** Platform statistics, charts, and activity feeds
-- **Requests Management:** View all employer-to-candidate requests with full CRUD operations
-- **Candidates Management:** View, search, filter, and manage all candidate applications
+**Admin Features:**
+- **Dashboard Analytics:** Platform statistics with real-time counts and activity feeds
+- **Requests Management:** View, update status, and delete all employer-to-candidate requests
+- **Candidates Management:** Full CRUD operations for candidate applications with search and filtering
 - **Employers Management:** View, search, filter, and manage all employer accounts
 - **Platform Settings:** Configure maintenance mode, registrations, and platform-wide settings
-- **Audit Logging:** Track all admin actions with detailed logs
-- **Contact Information:** Click-to-call and WhatsApp integration for phone numbers
+- **Audit Logging:** Complete audit trail of all admin actions with timestamps and details
+- **Contact Information:** Click-to-call and WhatsApp integration for all phone numbers
 
-**Planned Database Additions:**
-- `AuditLog` model - Track admin actions
-- `PlatformSettings` model - Store platform configuration
+**Database Models:**
+- `AuditLog` - Tracks all admin actions (DELETE, UPDATE, etc.)
+- `PlatformSettings` - Stores platform configuration (maintenance mode, registration toggles, etc.)
+- `User.role` - ADMIN enum for admin authentication
 
 **Admin Access:**
-- Separate authentication at `/adminofjb/login`
-- Admin accounts will be created via seed script
-- Admin role provides full platform oversight without access to employer-specific dashboards
-
-See project documentation for detailed admin implementation plan.
+- Login at `/adminofjb/login`
+- Default admin account (created via seed):
+  - Email: `admin@jobplatform.com`
+  - Password: `Admin@123456`
+  - ⚠️ **Change password immediately after first login**
+- Protected by middleware with ADMIN role check
+- Full platform oversight without access to employer-specific dashboards
 
 **Key Features:**
 - Public employee application submission (no auth required)
 - Dedicated Arabic employer landing page at `/employers` with IBM Plex Sans Arabic font
 - Secure employer dashboard with JWT authentication
+- **Full admin dashboard** with platform oversight and audit logging
 - Google Calendar integration for interview scheduling
 - Automated meeting cleanup via background tasks
 - CV upload with Cloudinary integration
 - Email notifications via Resend
+- Click-to-call and WhatsApp integration for contact information
 
 ## Database Configuration
 
@@ -56,9 +60,14 @@ The project supports **flexible database configuration** with easy toggling betw
 
 ### Supabase Integration
 - **Database**: `postgres` database at `db.dnqytwjcdobhwiyyqdwe.supabase.co`
+- **Connection Type**:
+  - **Local Development**: Direct connection (IPv6) at `db.dnqytwjcdobhwiyyqdwe.supabase.co:5432`
+  - **Production/Vercel**: Session Pooler (IPv4) at `aws-1-us-east-1.pooler.supabase.com:5432`
 - **ORM**: Prisma (no Supabase client library needed)
 - **Schema**: Fully migrated and matches local development
 - **Seeding**: Test accounts and sample data available
+
+**Important:** Vercel and other serverless platforms require IPv4 connectivity. Use the **Session Pooler** connection string for production deployments.
 
 ### Switching Between Databases
 
@@ -79,7 +88,11 @@ Edit `.env` and swap the comments:
 # DATABASE_URL="postgresql://postgres:password@localhost:5432/job_platform?schema=public"
 
 # SUPABASE DATABASE (for testing deployment before production)
+# Direct connection (works locally, IPv6)
 DATABASE_URL="postgresql://postgres:password@db.dnqytwjcdobhwiyyqdwe.supabase.co:5432/postgres"
+
+# OR use Session Pooler (recommended for testing Vercel-like environment, IPv4)
+# DATABASE_URL="postgresql://postgres.dnqytwjcdobhwiyyqdwe:password@aws-1-us-east-1.pooler.supabase.com:5432/postgres"
 ```
 
 **After switching databases:**
@@ -139,11 +152,25 @@ npx jest path/to/test          # Run specific test file
 ```
 app/                           # Next.js App Router
 ├── api/                       # API Routes (Route Handlers)
+│   ├── adminofjb/             # Admin API endpoints (protected by middleware)
+│   │   ├── audit/             # Audit log retrieval
+│   │   ├── candidates/        # Candidate CRUD operations
+│   │   ├── employers/         # Employer management
+│   │   ├── requests/          # Request management
+│   │   ├── settings/          # Platform settings
+│   │   └── stats/             # Admin dashboard statistics
 │   ├── auth/                  # Authentication endpoints (register, login, logout, check)
 │   ├── employee/              # Employee submission (public, no auth)
 │   ├── employer/              # Employer endpoints (protected by middleware)
 │   ├── google/                # Google Calendar OAuth flow
 │   └── files/                 # File viewing endpoint
+├── adminofjb/                 # Admin dashboard pages (protected by middleware)
+│   ├── candidates/            # Candidate management pages
+│   ├── dashboard/             # Admin dashboard homepage
+│   ├── employers/             # Employer management pages
+│   ├── login/                 # Admin login page
+│   ├── requests/              # Request management pages
+│   └── settings/              # Platform settings page
 ├── employer/dashboard/        # Protected employer dashboard page
 ├── employers/                 # Public employer landing page (Arabic, RTL)
 ├── login/                     # Login page
@@ -152,10 +179,13 @@ app/                           # Next.js App Router
 
 backend/                       # Backend logic (service/controller pattern)
 ├── controllers/               # Request handlers (thin layer)
+│   ├── admin.controller.ts
 │   ├── auth.controller.ts
 │   ├── employee.controller.ts
 │   └── employer.controller.ts
 ├── services/                  # Business logic (database operations)
+│   ├── admin.service.ts
+│   ├── audit.service.ts
 │   ├── auth.service.ts
 │   ├── employee.service.ts
 │   └── employer.service.ts
@@ -165,6 +195,12 @@ backend/                       # Backend logic (service/controller pattern)
 └── types.ts                   # Shared TypeScript types
 
 components/                    # Reusable UI components
+├── admin/                     # Admin-specific components
+│   ├── AdminNavbar.tsx        # Admin navigation
+│   ├── ContactCard.tsx        # Contact info with WhatsApp/call buttons
+│   ├── ConfirmDialog.tsx      # Confirmation modal
+│   ├── StatCard.tsx           # Statistics display
+│   └── StatusBadge.tsx        # Status indicators
 features/                      # Feature-specific React hooks
 lib/                           # Utility libraries
 ├── db.ts                      # Prisma client singleton
@@ -274,10 +310,13 @@ Key constraint: `@@unique([employeeId, employerId])` prevents duplicate requests
 Required:
 - `DATABASE_URL` - PostgreSQL connection string (local or Supabase)
   - Local: `postgresql://postgres:password@localhost:5432/job_platform?schema=public`
-  - Supabase: `postgresql://postgres:password@db.dnqytwjcdobhwiyyqdwe.supabase.co:5432/postgres`
-- `DATABASE_URL_DIRECT` - Direct connection for migrations (if using connection pooling)
+  - Supabase Direct (IPv6, local dev): `postgresql://postgres:password@db.dnqytwjcdobhwiyyqdwe.supabase.co:5432/postgres`
+  - **Supabase Pooler (IPv4, Vercel/Production)**: `postgresql://postgres.dnqytwjcdobhwiyyqdwe:password@aws-1-us-east-1.pooler.supabase.com:5432/postgres`
+- `DATABASE_URL_DIRECT` - Direct connection for migrations (optional, if using connection pooling)
 - `JWT_SECRET` - Secret key for JWT signing
 - `JWT_EXPIRES_IN` - Token expiration (default: 7d)
+
+**Note:** For Vercel and serverless platforms, **always use the Session Pooler URL** (IPv4-compatible). Direct connections won't work on Vercel.
 
 Optional:
 - `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` - For production file uploads
@@ -333,11 +372,29 @@ Optional:
 5. Start dev server: `npm run dev`
 
 ### Deploying to Vercel with Supabase
-1. Go to Vercel project settings
-2. Add environment variable:
-   - `DATABASE_URL` = `postgresql://postgres:password@db.dnqytwjcdobhwiyyqdwe.supabase.co:5432/postgres`
-3. Deploy - migrations run automatically via `build:vercel` script
-4. Seed if needed via Vercel CLI: `vercel env pull && npx prisma db seed`
+
+**Important:** Vercel requires IPv4 connectivity. Use Supabase's **Session Pooler** connection string.
+
+#### Getting the Pooler URL from Supabase:
+1. Go to Supabase Dashboard → Project Settings → Database
+2. In "Connection String" section, select **"Session pooler"** (not "Direct connection")
+3. Copy the pooler URL (format: `postgresql://postgres.PROJECT_REF:PASSWORD@aws-X-REGION.pooler.supabase.com:5432/postgres`)
+
+#### Configuring Vercel:
+1. Go to Vercel project → Settings → Environment Variables
+2. Add `DATABASE_URL`:
+   ```
+   postgresql://postgres.dnqytwjcdobhwiyyqdwe:PASSWORD@aws-1-us-east-1.pooler.supabase.com:5432/postgres
+   ```
+   *Replace `PASSWORD` with your actual Supabase database password*
+3. Add other required variables (JWT_SECRET, etc.)
+4. Select all environments: Production, Preview, Development
+5. Deploy - migrations run automatically via `build:vercel` script
+6. Database seeds automatically if empty
+
+**Common Issues:**
+- ❌ **Error: "Can't reach database server"** → You're using direct connection instead of pooler
+- ✅ **Solution:** Use the Session Pooler URL (ends with `pooler.supabase.com`)
 
 ## Design System
 
