@@ -97,12 +97,8 @@ export default function SkillFilter({
       </button>
 
       {/* Expandable Content */}
-      <div
-        className={`overflow-hidden transition-all duration-300 ease-in-out ${
-          isExpanded ? 'max-h-[800px] opacity-100' : 'max-h-0 opacity-0'
-        }`}
-      >
-        <div className="space-y-4">
+      {isExpanded && (
+        <div className="space-y-4 animate-slide-down">
           {/* Match Mode Toggle */}
           <div className="bg-dark-400 border-2 border-dark-300 rounded-lg p-3 sm:p-4">
             <label className="block text-xs sm:text-sm font-medium text-gray-400 mb-2 sm:mb-3">
@@ -277,7 +273,7 @@ export default function SkillFilter({
             </div>
           )}
         </div>
-      </div>
+      )}
     </div>
   );
 }
