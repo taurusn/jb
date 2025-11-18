@@ -1,15 +1,18 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { verifyTokenEdge } from '@/lib/auth-edge';
+import { verifyTokenEdge, getPlatformSettingsEdge } from '@/lib/auth-edge';
 
 /**
- * Middleware to protect routes
+ * Middleware to protect routes and enforce platform settings
  *
  * Protected routes:
  * - /employer/* - Only accessible to authenticated employers
  * - /api/employer/* - Only accessible to authenticated employers
  * - /adminofjb/* - Only accessible to authenticated admins
  * - /api/adminofjb/* - Only accessible to authenticated admins
+ *
+ * Platform settings enforcement:
+ * - Maintenance mode redirects non-admin users to /maintenance
  */
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -18,12 +21,10 @@ export async function middleware(request: NextRequest) {
   console.log('Path:', pathname);
   console.log('Cookies:', request.cookies.getAll());
 
-  // Exclude login pages from authentication
+  // Exclude login and maintenance pages from special handling
   const isLoginPage = pathname === '/login' || pathname === '/adminofjb/login';
-  if (isLoginPage) {
-    console.log('Login page - no auth required');
-    return NextResponse.next();
-  }
+  const isMaintenancePage = pathname === '/maintenance';
+  const isPublicSettingsApi = pathname === '/api/settings/public';
 
   // Check if route needs protection
   const isEmployerRoute = pathname.startsWith('/employer');
@@ -36,13 +37,47 @@ export async function middleware(request: NextRequest) {
   console.log('Requires auth:', requiresAuth);
   console.log('Is admin route:', isAdminRoute || isAdminApiRoute);
 
+  // Allow public settings API FIRST (prevent infinite loop)
+  if (isPublicSettingsApi) {
+    console.log('Public settings API - no auth required, skipping');
+    return NextResponse.next();
+  }
+
+  // Allow login pages
+  if (isLoginPage) {
+    console.log('Login page - no auth required');
+    return NextResponse.next();
+  }
+
+  // Allow maintenance page access
+  if (isMaintenancePage) {
+    console.log('Maintenance page - allowing access');
+    return NextResponse.next();
+  }
+
+  // Get platform settings (AFTER checking for settings API to prevent infinite loop)
+  const settings = await getPlatformSettingsEdge();
+  console.log('Platform settings:', settings);
+
+  // Get token to check if user is admin (before enforcing maintenance mode)
+  const token = request.cookies.get('token')?.value;
+  let isAdmin = false;
+
+  if (token) {
+    const decoded = await verifyTokenEdge(token);
+    isAdmin = decoded?.role === 'ADMIN';
+  }
+
+  // Enforce maintenance mode for non-admin users
+  if (settings.maintenanceMode && !isAdmin) {
+    console.log('Maintenance mode active - redirecting to /maintenance');
+    return NextResponse.redirect(new URL('/maintenance', request.url));
+  }
+
   if (!requiresAuth) {
     console.log('No auth required, passing through');
     return NextResponse.next();
   }
-
-  // Get token from cookie
-  const token = request.cookies.get('token')?.value;
 
   console.log('Token found:', !!token);
   console.log('Token value (first 20 chars):', token?.substring(0, 20));
@@ -131,9 +166,18 @@ export async function middleware(request: NextRequest) {
  */
 export const config = {
   matcher: [
+    // Protected routes
     '/employer/:path*',
     '/api/employer/:path*',
     '/adminofjb/:path*',
     '/api/adminofjb/:path*',
+    // Public routes that need settings checks
+    '/',
+    '/login',
+    '/employers',
+    '/maintenance',
+    '/api/settings/public',
+    // Exclude static files and Next.js internals
+    '/((?!_next/static|_next/image|favicon.ico).*)',
   ],
 };

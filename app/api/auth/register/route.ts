@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { handleRegister } from '@/backend/controllers/auth.controller';
+import { prisma as db } from '@/lib/db';
 
 /**
  * @openapi
@@ -47,11 +48,29 @@ import { handleRegister } from '@/backend/controllers/auth.controller';
  *         description: Registration successful
  *       400:
  *         description: Validation error or email already exists
+ *       403:
+ *         description: Registrations are currently closed
  *       500:
  *         description: Internal server error
  */
 export async function POST(request: NextRequest) {
   try {
+    // Check if registrations are allowed
+    const settings = await db.platformSettings.findFirst({
+      where: { id: 'default' },
+      select: { allowNewRegistrations: true },
+    });
+
+    if (settings && settings.allowNewRegistrations === false) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'New employer registrations are currently closed. Please check back later.'
+        },
+        { status: 403 }
+      );
+    }
+
     const body = await request.json();
 
     const result = await handleRegister(body);

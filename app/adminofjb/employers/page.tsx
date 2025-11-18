@@ -6,19 +6,19 @@ import { ContactCard } from '@/components/admin';
 
 interface Employer {
   id: string;
+  companyName: string;
+  contactPerson: string;
+  phone: string;
+  industry: string;
+  companySize: string | null;
+  companyWebsite: string | null;
   user: {
+    id: string;
     email: string;
-    role: string;
     createdAt: string;
   };
-  profile: {
-    companyName: string;
-    contactName: string;
-    phoneNumber: string;
-    industry: string;
-  } | null;
   _count: {
-    requests: number;
+    employeeRequests: number;
   };
 }
 
@@ -53,20 +53,18 @@ export default function EmployersPage() {
 
   // Get unique industries for filter
   const industries = Array.from(
-    new Set(employers.map((e) => e.profile?.industry).filter(Boolean))
+    new Set(employers.map((e) => e.industry).filter(Boolean))
   ).sort() as string[];
 
   const filteredEmployers = employers
     .filter((employer) => {
       const matchesSearch =
-        employer.profile?.companyName
-          ?.toLowerCase()
-          .includes(searchTerm.toLowerCase()) ||
-        employer.profile?.contactName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        employer.companyName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        employer.contactPerson.toLowerCase().includes(searchTerm.toLowerCase()) ||
         employer.user.email.toLowerCase().includes(searchTerm.toLowerCase());
 
       const matchesIndustry =
-        industryFilter === 'ALL' || employer.profile?.industry === industryFilter;
+        industryFilter === 'ALL' || employer.industry === industryFilter;
 
       return matchesSearch && matchesIndustry;
     })
@@ -76,11 +74,9 @@ export default function EmployersPage() {
           new Date(b.user.createdAt).getTime() - new Date(a.user.createdAt).getTime()
         );
       } else if (sortBy === 'name') {
-        return (
-          a.profile?.companyName?.localeCompare(b.profile?.companyName || '') || 0
-        );
+        return a.companyName.localeCompare(b.companyName);
       } else {
-        return b._count.requests - a._count.requests;
+        return b._count.employeeRequests - a._count.employeeRequests;
       }
     });
 
@@ -88,8 +84,8 @@ export default function EmployersPage() {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="text-center">
-          <div className="w-16 h-16 border-4 border-[#FEE715] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-gray-400 text-lg">Loading employers...</p>
+          <div className="w-16 h-16 border-4 border-brand-yellow border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-brand-light text-lg">Loading employers...</p>
         </div>
       </div>
     );
@@ -98,12 +94,14 @@ export default function EmployersPage() {
   if (error) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="text-center bg-white/5 backdrop-blur-sm border border-red-500/30 rounded-2xl p-8 max-w-md">
-          <div className="text-5xl mb-4">⚠️</div>
-          <p className="text-red-400 mb-6 text-lg">{error}</p>
+        <div className="text-center glass rounded-xl p-8 max-w-md">
+          <svg className="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+          <p className="text-gray-300 mb-6 text-lg">{error}</p>
           <button
             onClick={fetchEmployers}
-            className="px-6 py-3 bg-[#FEE715] text-[#101820] rounded-lg font-semibold hover:bg-[#FEE715]/90 transition-all transform hover:scale-105"
+            className="px-6 py-3 bg-brand-yellow text-brand-dark rounded-lg font-semibold hover:bg-brand-yellow/90 transition-all"
           >
             Retry
           </button>
@@ -113,45 +111,47 @@ export default function EmployersPage() {
   }
 
   return (
-    <div className="space-y-8 animate-fadeIn">
+    <div className="space-y-8 animate-slide-up">
       {/* Header */}
       <div className="relative">
-        <div className="absolute inset-0 bg-gradient-to-r from-[#FEE715]/10 via-transparent to-transparent rounded-2xl blur-xl" />
-        <div className="relative bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-8">
+        <div className="absolute inset-0 bg-gradient-to-r from-brand-yellow/10 via-transparent to-transparent rounded-xl blur-xl" />
+        <div className="relative glass rounded-xl p-8">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-[#FEE715] to-[#FEE715]/70 flex items-center justify-center shadow-lg">
-                <span className="text-3xl">🏢</span>
+              <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-brand-yellow to-brand-yellow/70 flex items-center justify-center shadow-lg">
+                <svg className="w-8 h-8 text-brand-dark" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                </svg>
               </div>
               <div>
-                <h1 className="text-4xl font-bold text-white mb-1">Employers</h1>
+                <h1 className="text-4xl font-display font-bold text-brand-light mb-1">Employers</h1>
                 <p className="text-gray-400">Manage all registered employers</p>
               </div>
             </div>
             <div className="text-right">
               <p className="text-sm text-gray-400">Total Employers</p>
-              <p className="text-3xl font-bold text-[#FEE715]">{employers.length}</p>
+              <p className="text-3xl font-display font-bold text-brand-yellow">{employers.length}</p>
             </div>
           </div>
         </div>
       </div>
 
       {/* Filters */}
-      <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-6">
+      <div className="glass rounded-xl p-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Search */}
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-2">Search</label>
             <div className="relative">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-xl">
-                🔍
-              </span>
+              <svg className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
               <input
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="Search by company, contact name, or email..."
-                className="w-full pl-12 pr-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FEE715] focus:border-transparent transition-all"
+                className="w-full pl-12 pr-4 py-3 bg-dark-400 border-2 border-dark-300 rounded-lg text-brand-light placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-yellow focus:border-brand-yellow transition-all"
               />
             </div>
           </div>
@@ -164,7 +164,7 @@ export default function EmployersPage() {
             <select
               value={industryFilter}
               onChange={(e) => setIndustryFilter(e.target.value)}
-              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#FEE715] focus:border-transparent transition-all"
+              className="w-full px-4 py-3 bg-dark-400 border-2 border-dark-300 rounded-lg text-brand-light focus:outline-none focus:ring-2 focus:ring-brand-yellow focus:border-brand-yellow transition-all"
             >
               <option value="ALL">All Industries</option>
               {industries.map((industry) => (
@@ -184,7 +184,7 @@ export default function EmployersPage() {
               onClick={() => setSortBy('date')}
               className={`px-4 py-2 rounded-lg font-medium transition-all ${
                 sortBy === 'date'
-                  ? 'bg-[#FEE715] text-[#101820]'
+                  ? 'bg-brand-yellow text-brand-dark'
                   : 'bg-white/5 text-gray-400 hover:bg-white/10'
               }`}
             >
@@ -194,7 +194,7 @@ export default function EmployersPage() {
               onClick={() => setSortBy('name')}
               className={`px-4 py-2 rounded-lg font-medium transition-all ${
                 sortBy === 'name'
-                  ? 'bg-[#FEE715] text-[#101820]'
+                  ? 'bg-brand-yellow text-brand-dark'
                   : 'bg-white/5 text-gray-400 hover:bg-white/10'
               }`}
             >
@@ -204,7 +204,7 @@ export default function EmployersPage() {
               onClick={() => setSortBy('requests')}
               className={`px-4 py-2 rounded-lg font-medium transition-all ${
                 sortBy === 'requests'
-                  ? 'bg-[#FEE715] text-[#101820]'
+                  ? 'bg-brand-yellow text-brand-dark'
                   : 'bg-white/5 text-gray-400 hover:bg-white/10'
               }`}
             >
@@ -218,7 +218,7 @@ export default function EmployersPage() {
                 setSearchTerm('');
                 setIndustryFilter('ALL');
               }}
-              className="px-4 py-2 bg-white/5 text-gray-400 hover:bg-white/10 rounded-lg font-medium transition-all"
+              className="px-4 py-2 bg-dark-400 text-gray-400 hover:bg-dark-300 hover:text-brand-light rounded-lg font-medium transition-all"
             >
               Clear Filters
             </button>
@@ -237,60 +237,106 @@ export default function EmployersPage() {
           <div
             key={employer.id}
             onClick={() => router.push(`/adminofjb/employers/${employer.id}`)}
-            className="group relative bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-6 hover:border-[#FEE715]/50 transition-all duration-300 cursor-pointer hover:shadow-lg hover:shadow-[#FEE715]/10"
+            className="group relative glass rounded-xl p-6 hover:border-brand-yellow/50 transition-all duration-300 cursor-pointer hover:shadow-lg hover:shadow-brand-yellow/10"
           >
-            <div className="absolute inset-0 bg-gradient-to-br from-[#FEE715]/0 to-[#FEE715]/5 opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl" />
+            <div className="absolute inset-0 bg-gradient-to-br from-brand-yellow/0 to-brand-yellow/5 opacity-0 group-hover:opacity-100 transition-opacity rounded-xl" />
 
             <div className="relative space-y-4">
               {/* Company Header */}
               <div className="flex items-center gap-4">
-                <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-[#FEE715]/20 to-[#FEE715]/10 flex items-center justify-center border-2 border-[#FEE715]/30">
-                  <span className="text-2xl">🏢</span>
+                <div className="w-16 h-16 rounded-xl bg-brand-yellow/10 flex items-center justify-center border-2 border-brand-yellow/20">
+                  <svg className="w-8 h-8 text-brand-yellow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                  </svg>
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h3 className="text-lg font-bold text-white truncate">
-                    {employer.profile?.companyName || 'No Company Name'}
+                  <h3 className="text-lg font-display font-bold text-brand-light truncate">
+                    {employer.companyName}
                   </h3>
-                  <p className="text-sm text-gray-400 truncate">
-                    {employer.profile?.contactName || 'No Contact Name'}
-                  </p>
+                  <p className="text-sm text-gray-400 truncate">{employer.contactPerson}</p>
                 </div>
               </div>
 
               {/* Details */}
               <div className="space-y-2 text-sm">
-                {employer.profile?.industry && (
+                {/* Industry */}
+                {employer.industry && (
                   <div className="flex items-center gap-2 text-gray-300">
-                    <span>🏭</span>
-                    <span className="truncate">{employer.profile.industry}</span>
+                    <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    </svg>
+                    <span className="truncate">{employer.industry}</span>
                   </div>
                 )}
 
+                {/* Company Size */}
+                {employer.companySize && (
+                  <div className="flex items-center gap-2 text-gray-300">
+                    <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                    <span className="truncate">{employer.companySize}</span>
+                  </div>
+                )}
+
+                {/* Website */}
+                {employer.companyWebsite && (
+                  <div className="flex items-center gap-2 text-gray-300">
+                    <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
+                    </svg>
+                    <a
+                      href={employer.companyWebsite.startsWith('http') ? employer.companyWebsite : `https://${employer.companyWebsite}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={(e) => e.stopPropagation()}
+                      className="truncate hover:text-brand-yellow transition-colors"
+                    >
+                      {employer.companyWebsite.replace(/^https?:\/\//,'')}
+                    </a>
+                  </div>
+                )}
+
+                {/* Email */}
                 <div className="flex items-center gap-2 text-gray-300">
-                  <span>📧</span>
-                  <span>{employer._count.requests} requests sent</span>
+                  <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  </svg>
+                  <span className="truncate">{employer.user.email}</span>
                 </div>
 
+                {/* Requests Count */}
                 <div className="flex items-center gap-2 text-gray-300">
-                  <span>📅</span>
+                  <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  <span>{employer._count.employeeRequests} candidate requests</span>
+                </div>
+
+                {/* Join Date */}
+                <div className="flex items-center gap-2 text-gray-300">
+                  <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
                   <span>
                     Joined{' '}
                     {new Date(employer.user.createdAt).toLocaleDateString('en-US', {
                       month: 'short',
+                      day: 'numeric',
                       year: 'numeric',
                     })}
                   </span>
                 </div>
               </div>
 
-              {/* Contact */}
-              {employer.profile?.phoneNumber && (
+              {/* Contact Card */}
+              <div className="pt-2 border-t border-white/10">
                 <ContactCard
-                  name={employer.profile?.contactName || employer.user.email}
+                  name={employer.contactPerson}
                   email={employer.user.email}
-                  phone={employer.profile.phoneNumber}
+                  phone={employer.phone}
                 />
-              )}
+              </div>
 
               {/* View Button */}
               <button
@@ -298,7 +344,7 @@ export default function EmployersPage() {
                   e.stopPropagation();
                   router.push(`/adminofjb/employers/${employer.id}`);
                 }}
-                className="w-full px-4 py-2 bg-[#FEE715] text-[#101820] rounded-lg font-semibold hover:bg-[#FEE715]/90 transition-all transform group-hover:scale-105"
+                className="w-full px-4 py-2 bg-brand-yellow text-brand-dark rounded-lg font-semibold hover:bg-brand-yellow/90 transition-all transform group-hover:scale-105"
               >
                 View Full Profile →
               </button>
@@ -307,8 +353,10 @@ export default function EmployersPage() {
         ))}
 
         {filteredEmployers.length === 0 && (
-          <div className="col-span-full text-center py-16 bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl">
-            <div className="text-6xl mb-4">🔍</div>
+          <div className="col-span-full text-center py-16 glass rounded-xl">
+            <svg className="w-16 h-16 text-gray-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
             <p className="text-xl text-gray-400 mb-2">No employers found</p>
             <p className="text-sm text-gray-500">
               {searchTerm || industryFilter !== 'ALL'
@@ -318,23 +366,6 @@ export default function EmployersPage() {
           </div>
         )}
       </div>
-
-      <style jsx>{`
-        @keyframes fadeIn {
-          from {
-            opacity: 0;
-            transform: translateY(20px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-
-        .animate-fadeIn {
-          animation: fadeIn 0.6s ease-out;
-        }
-      `}</style>
     </div>
   );
 }

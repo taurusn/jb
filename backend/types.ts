@@ -156,6 +156,7 @@ export interface EmployeeFilters {
   skills?: string[];
   experience?: string;
   search?: string; // General search across multiple fields
+  skillMatchMode?: 'any' | 'all'; // OR vs AND logic for skills filtering
 }
 
 export interface PaginationParams {

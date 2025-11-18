@@ -7,33 +7,26 @@ import { StatusBadge, ContactCard, ConfirmDialog } from '@/components/admin';
 interface RequestDetail {
   id: string;
   status: 'PENDING' | 'APPROVED' | 'REJECTED';
-  createdAt: string;
-  updatedAt: string;
+  requestedAt: string;
   adminNotes: string | null;
   employee: {
     id: string;
     fullName: string;
-    email: string;
-    phoneNumber: string;
+    email: string | null;
+    phone: string;
     city: string;
-    position: string;
     education: string;
-    yearsOfExperience: number;
-    skills: string[];
-    cvUrl: string | null;
+    experience: string;
+    skills: string;
+    resumeUrl: string | null;
     profilePictureUrl: string | null;
   };
   employer: {
-    id: string;
-    user: {
-      email: string;
-    };
-    profile: {
-      companyName: string;
-      contactName: string;
-      phoneNumber: string;
-      industry: string;
-    } | null;
+    companyName: string;
+    contactPerson: string;
+    phone: string;
+    email: string;
+    industry: string | null;
   };
   meetingLink: string | null;
   meetingDate: string | null;
@@ -64,9 +57,10 @@ export default function RequestDetailPage({ params }: { params: Promise<{ id: st
       const response = await fetch(`/api/adminofjb/requests/${requestId}`);
       if (response.ok) {
         const data = await response.json();
-        setRequest(data.request);
-        setNewStatus(data.request.status);
-        setAdminNotes(data.request.adminNotes || '');
+        console.log('🔍 Request data received:', data);
+        setRequest(data);
+        setNewStatus(data.status);
+        setAdminNotes(data.adminNotes || '');
       } else {
         setError('Failed to fetch request details');
       }
@@ -93,7 +87,7 @@ export default function RequestDetailPage({ params }: { params: Promise<{ id: st
 
       if (response.ok) {
         const data = await response.json();
-        setRequest(data.request);
+        setRequest(data);
         alert('Request updated successfully!');
       } else {
         alert('Failed to update request');
@@ -205,18 +199,8 @@ export default function RequestDetailPage({ params }: { params: Promise<{ id: st
               </div>
 
               <div>
-                <label className="text-sm text-gray-400 block mb-1">Position</label>
-                <p className="text-white font-semibold">{request.employee.position}</p>
-              </div>
-
-              <div>
                 <label className="text-sm text-gray-400 block mb-1">Education</label>
                 <p className="text-white">{request.employee.education}</p>
-              </div>
-
-              <div>
-                <label className="text-sm text-gray-400 block mb-1">Experience</label>
-                <p className="text-white">{request.employee.yearsOfExperience} years</p>
               </div>
 
               <div>
@@ -225,16 +209,21 @@ export default function RequestDetailPage({ params }: { params: Promise<{ id: st
               </div>
 
               <div className="md:col-span-2">
+                <label className="text-sm text-gray-400 block mb-1">Experience</label>
+                <p className="text-white whitespace-pre-wrap">{request.employee.experience}</p>
+              </div>
+
+              <div className="md:col-span-2">
                 <label className="text-sm text-gray-400 block mb-2">Skills</label>
                 <div className="flex flex-wrap gap-2">
-                  {request.employee.skills.map((skill, index) => (
+                  {request.employee.skills ? request.employee.skills.split(',').map((skill, index) => (
                     <span
                       key={index}
                       className="px-3 py-1 bg-[#FEE715]/20 text-[#FEE715] rounded-full text-sm font-medium border border-[#FEE715]/30"
                     >
-                      {skill}
+                      {skill.trim()}
                     </span>
-                  ))}
+                  )) : <span className="text-gray-400">No skills specified</span>}
                 </div>
               </div>
 
@@ -242,21 +231,21 @@ export default function RequestDetailPage({ params }: { params: Promise<{ id: st
                 <label className="text-sm text-gray-400 block mb-2">Contact Information</label>
                 <ContactCard
                   name={request.employee.fullName}
-                  email={request.employee.email}
-                  phone={request.employee.phoneNumber}
+                  email={request.employee.email || ''}
+                  phone={request.employee.phone}
                 />
               </div>
 
-              {request.employee.cvUrl && (
+              {request.employee.resumeUrl && (
                 <div className="md:col-span-2">
                   <a
-                    href={request.employee.cvUrl}
+                    href={`/view-document?file=${encodeURIComponent(request.employee.resumeUrl)}&name=${encodeURIComponent(request.employee.fullName)}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-2 px-6 py-3 bg-[#FEE715] text-[#101820] rounded-lg font-semibold hover:bg-[#FEE715]/90 transition-all transform hover:scale-105"
                   >
                     <span>📄</span>
-                    Download CV
+                    View CV
                   </a>
                 </div>
               )}
@@ -274,30 +263,28 @@ export default function RequestDetailPage({ params }: { params: Promise<{ id: st
               <div>
                 <label className="text-sm text-gray-400 block mb-1">Company Name</label>
                 <p className="text-white font-semibold">
-                  {request.employer.profile?.companyName || 'N/A'}
+                  {request.employer.companyName}
                 </p>
               </div>
 
               <div>
                 <label className="text-sm text-gray-400 block mb-1">Contact Person</label>
-                <p className="text-white">{request.employer.profile?.contactName || 'N/A'}</p>
+                <p className="text-white">{request.employer.contactPerson}</p>
               </div>
 
               <div>
                 <label className="text-sm text-gray-400 block mb-1">Industry</label>
-                <p className="text-white">{request.employer.profile?.industry || 'N/A'}</p>
+                <p className="text-white">{request.employer.industry || 'N/A'}</p>
               </div>
 
-              {request.employer.profile?.phoneNumber && (
-                <div className="md:col-span-2">
-                  <label className="text-sm text-gray-400 block mb-2">Contact Information</label>
-                  <ContactCard
-                    name={request.employer.profile?.contactName || request.employer.user.email}
-                    email={request.employer.user.email}
-                    phone={request.employer.profile.phoneNumber}
-                  />
-                </div>
-              )}
+              <div className="md:col-span-2">
+                <label className="text-sm text-gray-400 block mb-2">Contact Information</label>
+                <ContactCard
+                  name={request.employer.contactPerson}
+                  email={request.employer.email}
+                  phone={request.employer.phone}
+                />
+              </div>
             </div>
           </div>
 
@@ -401,19 +388,9 @@ export default function RequestDetailPage({ params }: { params: Promise<{ id: st
               </div>
 
               <div>
-                <label className="text-gray-400 block mb-1">Created</label>
+                <label className="text-gray-400 block mb-1">Requested On</label>
                 <p className="text-white">
-                  {new Date(request.createdAt).toLocaleString('en-US', {
-                    dateStyle: 'medium',
-                    timeStyle: 'short',
-                  })}
-                </p>
-              </div>
-
-              <div>
-                <label className="text-gray-400 block mb-1">Last Updated</label>
-                <p className="text-white">
-                  {new Date(request.updatedAt).toLocaleString('en-US', {
+                  {new Date(request.requestedAt).toLocaleString('en-US', {
                     dateStyle: 'medium',
                     timeStyle: 'short',
                   })}

@@ -5,6 +5,7 @@ export { default as FileUpload } from './FileUpload';
 export { default as Navbar } from './Navbar';
 export { default as AuthGuard } from './AuthGuard';
 export { default as Tabs } from './Tabs';
+export { default as SkillSelector } from './SkillSelector';
 
 // Type exports
 export type { ButtonProps, ButtonVariant, ButtonSize } from './Button';

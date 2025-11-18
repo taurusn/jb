@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Button, Input, Navbar } from '@/components';
@@ -9,6 +9,8 @@ export default function RegisterPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [registrationsAllowed, setRegistrationsAllowed] = useState<boolean | null>(null);
+  const [checkingSettings, setCheckingSettings] = useState(true);
 
   const [formData, setFormData] = useState({
     email: '',
@@ -24,6 +26,27 @@ export default function RegisterPage() {
 
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+  // Check if registrations are allowed
+  useEffect(() => {
+    async function checkSettings() {
+      try {
+        const response = await fetch('/api/settings/public');
+        if (response.ok) {
+          const settings = await response.json();
+          setRegistrationsAllowed(settings.allowNewRegistrations ?? true);
+        } else {
+          setRegistrationsAllowed(true); // Default to allowed on error
+        }
+      } catch (error) {
+        console.error('Error checking settings:', error);
+        setRegistrationsAllowed(true); // Default to allowed on error
+      } finally {
+        setCheckingSettings(false);
+      }
+    }
+    checkSettings();
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -143,9 +166,51 @@ export default function RegisterPage() {
 
           {/* Registration Form */}
           <div className="glass rounded-2xl p-8 md:p-10 shadow-dark-elevation animate-slide-up">
-            {error && (
-              <div className="mb-6 bg-accent-red/10 border border-accent-red/50 rounded-lg p-4 animate-slide-down">
-                <div className="flex items-center gap-2">
+            {/* Loading state while checking settings */}
+            {checkingSettings ? (
+              <div className="text-center py-12">
+                <div className="w-16 h-16 border-4 border-brand-yellow border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+                <p className="text-brand-light text-lg">Loading...</p>
+              </div>
+            ) : registrationsAllowed === false ? (
+              /* Registrations closed message */
+              <div className="text-center py-12">
+                <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-gradient-to-br from-gray-500 to-gray-600 flex items-center justify-center shadow-lg">
+                  <svg
+                    className="w-12 h-12 text-white"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"
+                    />
+                  </svg>
+                </div>
+                <h2 className="text-2xl sm:text-3xl lg:text-4xl font-display font-bold text-brand-light mb-4">
+                  Registrations Currently Closed
+                </h2>
+                <p className="text-lg text-gray-300 mb-6">
+                  We're not accepting new employer registrations at this time.
+                </p>
+                <p className="text-gray-400 mb-6">
+                  Please check back later or contact support for more information.
+                </p>
+                <Link href="/login">
+                  <Button variant="outline" size="md">
+                    Already have an account? Login
+                  </Button>
+                </Link>
+              </div>
+            ) : (
+              /* Normal form when registrations are allowed */
+              <>
+                {error && (
+                  <div className="mb-6 bg-accent-red/10 border border-accent-red/50 rounded-lg p-4 animate-slide-down">
+                    <div className="flex items-center gap-2">
                   <svg
                     className="w-5 h-5 text-accent-red flex-shrink-0"
                     fill="none"
@@ -454,6 +519,8 @@ export default function RegisterPage() {
                 </p>
               </div>
             </form>
+              </>
+            )}
           </div>
 
           {/* Employee Link */}

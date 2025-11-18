@@ -1,13 +1,15 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Button, Input, FileUpload, Navbar } from '@/components';
+import { Button, Input, FileUpload, Navbar, SkillSelector } from '@/components';
 import { useEmployeeForm } from '@/features/employee/useEmployeeForm';
 import AvailabilitySelector from '@/components/interview/AvailabilitySelector';
 
 export default function HomePage() {
   const { submitApplication, loading, error, success, clearError } = useEmployeeForm();
+  const [applicationsAllowed, setApplicationsAllowed] = useState<boolean | null>(null);
+  const [checkingSettings, setCheckingSettings] = useState(true);
 
   // Multi-step form state
   const [currentStep, setCurrentStep] = useState(1);
@@ -19,7 +21,7 @@ export default function HomePage() {
     phone: '',
     city: '',
     education: '',
-    skills: '',
+    skills: [] as string[],
     experience: '',
   });
 
@@ -27,6 +29,27 @@ export default function HomePage() {
   const [profilePicture, setProfilePicture] = useState<File | null>(null);
   const [availability, setAvailability] = useState<string | null>(null);
   const [validationError, setValidationError] = useState<string | null>(null);
+
+  // Check if applications are allowed
+  useEffect(() => {
+    async function checkSettings() {
+      try {
+        const response = await fetch('/api/settings/public');
+        if (response.ok) {
+          const settings = await response.json();
+          setApplicationsAllowed(settings.allowNewApplications ?? true);
+        } else {
+          setApplicationsAllowed(true); // Default to allowed on error
+        }
+      } catch (error) {
+        console.error('Error checking settings:', error);
+        setApplicationsAllowed(true); // Default to allowed on error
+      } finally {
+        setCheckingSettings(false);
+      }
+    }
+    checkSettings();
+  }, []);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -53,6 +76,12 @@ export default function HomePage() {
 
   const handleAvailabilityChange = (value: string) => {
     setAvailability(value);
+    setValidationError(null);
+    clearError();
+  };
+
+  const handleSkillsChange = (skills: string[]) => {
+    setFormData((prev) => ({ ...prev, skills }));
     setValidationError(null);
     clearError();
   };
@@ -137,17 +166,9 @@ export default function HomePage() {
         return true;
 
       case 3: // Professional Details
-        // Skills validation
-        if (!formData.skills.trim()) {
-          setValidationError('Please list your skills');
-          return false;
-        }
-        if (formData.skills.trim().length < 5) {
-          setValidationError('Please provide at least 5 characters describing your skills');
-          return false;
-        }
-        if (formData.skills.length > 1000) {
-          setValidationError('Skills description is too long (max 1000 characters)');
+        // Skills validation (array format)
+        if (!formData.skills || formData.skills.length === 0) {
+          setValidationError('Please select at least one skill');
           return false;
         }
 
@@ -379,15 +400,52 @@ export default function HomePage() {
       <section id="application-form" className="py-12 sm:py-16 lg:py-20 px-3 sm:px-4 relative">
         <div className="max-w-3xl mx-auto">
           <div className="glass rounded-xl sm:rounded-2xl p-5 sm:p-8 lg:p-12 shadow-dark-elevation animate-slide-up">
-            {/* Header */}
-            <div className="text-center mb-6 sm:mb-8">
-              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-display font-bold text-brand-light mb-2 sm:mb-3">
-                Submit Your Application
-              </h2>
-              <p className="text-sm sm:text-base text-gray-400">
-                Step {currentStep} of {totalSteps}
-              </p>
-            </div>
+            {/* Loading state while checking settings */}
+            {checkingSettings ? (
+              <div className="text-center py-12">
+                <div className="w-16 h-16 border-4 border-brand-yellow border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+                <p className="text-brand-light text-lg">Loading...</p>
+              </div>
+            ) : applicationsAllowed === false ? (
+              /* Applications closed message */
+              <div className="text-center py-12">
+                <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-gradient-to-br from-gray-500 to-gray-600 flex items-center justify-center shadow-lg">
+                  <svg
+                    className="w-12 h-12 text-white"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"
+                    />
+                  </svg>
+                </div>
+                <h2 className="text-2xl sm:text-3xl lg:text-4xl font-display font-bold text-brand-light mb-4">
+                  Applications Currently Closed
+                </h2>
+                <p className="text-lg text-gray-300 mb-6">
+                  We're not accepting new applications at this time.
+                </p>
+                <p className="text-gray-400">
+                  Please check back later or contact support for more information.
+                </p>
+              </div>
+            ) : (
+              /* Normal form when applications are allowed */
+              <>
+                {/* Header */}
+                <div className="text-center mb-6 sm:mb-8">
+                  <h2 className="text-2xl sm:text-3xl lg:text-4xl font-display font-bold text-brand-light mb-2 sm:mb-3">
+                    Submit Your Application
+                  </h2>
+                  <p className="text-sm sm:text-base text-gray-400">
+                    Step {currentStep} of {totalSteps}
+                  </p>
+                </div>
 
             {/* Progress Bar */}
             <div className="mb-8">
@@ -626,20 +684,12 @@ export default function HomePage() {
                   Professional Details
                 </h3>
 
-                <div>
-                  <label className="block text-xs sm:text-sm font-semibold text-brand-light mb-1.5 sm:mb-2">
-                    Skills <span className="text-brand-yellow">*</span>
-                  </label>
-                  <textarea
-                    name="skills"
-                    value={formData.skills}
-                    onChange={handleInputChange}
-                    placeholder="e.g., JavaScript, React, Node.js, Python, SQL, etc."
-                    required
-                    rows={3}
-                    className="w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base rounded-lg bg-dark-400 border-2 border-dark-300 text-brand-light font-medium transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-brand-yellow focus:border-brand-yellow hover:border-brand-yellow/50 resize-none"
-                  />
-                </div>
+                <SkillSelector
+                  value={formData.skills}
+                  onChange={handleSkillsChange}
+                  disabled={loading}
+                  required
+                />
 
                 <div>
                   <label className="block text-xs sm:text-sm font-semibold text-brand-light mb-1.5 sm:mb-2">
@@ -751,6 +801,8 @@ export default function HomePage() {
                 )}
               </div>
             </form>
+              </>
+            )}
           </div>
 
           {/* Employer CTA */}

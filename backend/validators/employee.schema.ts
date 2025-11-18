@@ -28,8 +28,12 @@ export const employeeApplicationSchema = z.object({
     .max(200, 'Education information is too long'),
   skills: z
     .string()
-    .min(5, 'Please provide at least 5 characters describing your skills')
-    .max(1000, 'Skills description is too long'),
+    .min(1, 'Please select at least one skill')
+    .max(500, 'Too many skills selected')
+    .refine(
+      (val) => val.trim().length > 0,
+      'Please select at least one skill'
+    ),
   experience: z
     .string()
     .min(10, 'Please provide at least 10 characters describing your experience')

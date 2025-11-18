@@ -9,7 +9,7 @@ export interface EmployeeFormData {
   phone: string;
   city: string;
   education: string;
-  skills: string;
+  skills: string | string[]; // Accept both string and array formats
   experience: string;
   resume: File | null;
   profilePicture?: File | null;
@@ -52,7 +52,9 @@ export const useEmployeeForm = (): UseEmployeeFormReturn => {
       formData.append('phone', data.phone);
       formData.append('city', data.city);
       formData.append('education', data.education);
-      formData.append('skills', data.skills);
+      // Convert skills array to comma-separated string
+      const skillsString = Array.isArray(data.skills) ? data.skills.join(', ') : data.skills;
+      formData.append('skills', skillsString);
       formData.append('experience', data.experience);
       formData.append('resume', data.resume);
       if (data.profilePicture) formData.append('profilePicture', data.profilePicture);
@@ -79,7 +81,7 @@ export const useEmployeeForm = (): UseEmployeeFormReturn => {
         phone: data.phone,
         city: data.city,
         education: data.education,
-        skills: data.skills,
+        skills: skillsString, // Use the converted string
         hasAvailability: !!data.availableTimeSlots,
         timestamp: new Date().toISOString(),
       }));

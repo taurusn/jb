@@ -6,6 +6,8 @@ import { useApplicants, useRequestedApplicants, useDashboard, useRequest, useUpd
 import { useLogout } from '@/features/auth/useAuth';
 import type { TabItem } from '@/components';
 import InterviewScheduler from '@/components/interview/InterviewScheduler';
+import SkillFilter from '@/components/employer/SkillFilter';
+import { getSkillCategoryInfo } from '@/lib/skill-categories';
 
 export default function EmployerDashboard() {
   const { logout } = useLogout();
@@ -45,6 +47,27 @@ export default function EmployerDashboard() {
   const [activeTab, setActiveTab] = useState('unrequested');
   const [updatingRequestId, setUpdatingRequestId] = useState<string | null>(null);
   const [isFilterExpanded, setIsFilterExpanded] = useState(false);
+
+  // New skill filter state
+  const [selectedSkillsArray, setSelectedSkillsArray] = useState<string[]>([]);
+  const [skillMatchMode, setSkillMatchMode] = useState<'any' | 'all'>('any');
+
+  // View mode state (list vs grid) with localStorage persistence
+  const [viewMode, setViewMode] = useState<'list' | 'grid'>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('employer-dashboard-view-mode');
+      return (saved as 'list' | 'grid') || 'list';
+    }
+    return 'list';
+  });
+
+  // Save view mode to localStorage when it changes
+  const handleViewModeChange = (mode: 'list' | 'grid') => {
+    setViewMode(mode);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('employer-dashboard-view-mode', mode);
+    }
+  };
 
   // Interview scheduling state
   const [showScheduler, setShowScheduler] = useState(false);
@@ -93,13 +116,19 @@ export default function EmployerDashboard() {
   };
 
   const handleFilter = () => {
+    // Convert skill array to comma-separated string for API
+    const skillsString = selectedSkillsArray.length > 0
+      ? selectedSkillsArray.join(',')
+      : '';
+
     const filters = {
       city: filterCity,
       education: filterEducation,
-      skills: filterSkills,
+      skills: skillsString,
       search: filterSearch,
+      skillMatchMode: skillMatchMode, // Pass match mode to API
     };
-    
+
     if (activeTab === 'unrequested') {
       fetchUnrequestedApplicants(1, filters);
     } else {
@@ -112,7 +141,9 @@ export default function EmployerDashboard() {
     setFilterEducation('');
     setFilterSkills('');
     setFilterSearch('');
-    
+    setSelectedSkillsArray([]);
+    setSkillMatchMode('any');
+
     if (activeTab === 'unrequested') {
       fetchUnrequestedApplicants(1, {});
     } else {
@@ -127,6 +158,8 @@ export default function EmployerDashboard() {
     setFilterEducation('');
     setFilterSkills('');
     setFilterSearch('');
+    setSelectedSkillsArray([]);
+    setSkillMatchMode('any');
   };
 
   const handleStatusUpdate = async (requestId: string, status: 'APPROVED' | 'REJECTED') => {
@@ -138,6 +171,14 @@ export default function EmployerDashboard() {
       refetchStats(); // Refresh stats to update the counts
       setUpdatingRequestId(null);
     }, 1000);
+  };
+
+  // Helper function to check if a skill matches the active filters
+  const isSkillMatched = (skill: string): boolean => {
+    if (selectedSkillsArray.length === 0) return false;
+    return selectedSkillsArray.some(
+      filterSkill => skill.toLowerCase().includes(filterSkill.toLowerCase())
+    );
   };
 
   // Function to render applicant list
@@ -156,10 +197,14 @@ export default function EmployerDashboard() {
       submittedAt: Date;
       requestStatus?: string;
       requestId?: string;
-    }>, 
-    loading: boolean, 
-    currentPage: number, 
-    totalPages: number, 
+      availableTimeSlots?: string | null;
+      meetingDate?: string | null;
+      meetingDuration?: number | null;
+      meetingLink?: string | null;
+    }>,
+    loading: boolean,
+    currentPage: number,
+    totalPages: number,
     fetchApplicants: (page: number) => void,
     refetch: () => void,
     showRequestButton = true
@@ -186,64 +231,224 @@ export default function EmployerDashboard() {
             <p className="text-gray-500 text-xs sm:text-sm">Try adjusting your filters or check back later</p>
           </div>
         ) : (
-          <div className="space-y-3 sm:space-y-4">
-            {applicants.map((applicant, index) => (
+          <div className={viewMode === 'grid' ? 'grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4' : 'space-y-3 sm:space-y-4'}>
+            {applicants.map((applicant, index) => {
+              const skillsArray = applicant.skills ? applicant.skills.split(',').map((s: string) => s.trim()) : [];
+
+              return (
               <div
                 key={applicant.id}
-                className="bg-dark-400 rounded-lg p-4 sm:p-6 border-2 border-dark-300 hover:border-brand-yellow/50 transition-all duration-300 animate-slide-right"
+                className={`bg-dark-400 rounded-lg p-4 sm:p-6 border-2 border-dark-300 hover:border-brand-yellow/50 transition-all duration-300 animate-slide-right ${
+                  viewMode === 'grid' ? 'flex flex-col h-full' : ''
+                }`}
                 style={{ animationDelay: `${index * 50}ms` }}
               >
                 <div className="flex flex-col gap-4">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-2">
-                      <div className="w-10 h-10 sm:w-12 sm:h-12 bg-brand-yellow rounded-full flex items-center justify-center flex-shrink-0">
-                        <span className="text-brand-dark font-bold text-base sm:text-lg">
+                  {/* Header with profile */}
+                  <div className="flex items-start gap-3 sm:gap-4">
+                    {/* Profile Picture */}
+                    {applicant.profilePictureUrl ? (
+                      <img
+                        src={applicant.profilePictureUrl.startsWith('supabase-private://')
+                          ? `/api/files/view?file=${encodeURIComponent(applicant.profilePictureUrl)}`
+                          : applicant.profilePictureUrl
+                        }
+                        alt={applicant.fullName}
+                        className="w-14 h-14 sm:w-16 sm:h-16 rounded-full object-cover border-2 border-brand-yellow/30 flex-shrink-0"
+                      />
+                    ) : (
+                      <div className="w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-br from-brand-yellow to-brand-yellow/70 rounded-full flex items-center justify-center flex-shrink-0 border-2 border-brand-yellow/30">
+                        <span className="text-brand-dark font-bold text-xl sm:text-2xl">
                           {applicant.fullName.charAt(0).toUpperCase()}
                         </span>
                       </div>
-                      <div className="min-w-0 flex-1">
-                        <h3 className="text-base sm:text-lg font-semibold text-brand-light truncate">{applicant.fullName}</h3>
-                        <p className="text-xs sm:text-sm text-gray-400 truncate">{applicant.city}</p>
+                    )}
+
+                    {/* Name and Info */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start justify-between gap-2 mb-1">
+                        <h3 className="text-lg sm:text-xl font-bold text-brand-light">{applicant.fullName}</h3>
+                        {applicant.requestStatus && (
+                          <div className={`px-2.5 py-1 rounded-full text-xs font-semibold flex-shrink-0 ${
+                            applicant.requestStatus === 'PENDING' ? 'bg-accent-orange/20 text-accent-orange border border-accent-orange/30' :
+                            applicant.requestStatus === 'APPROVED' ? 'bg-accent-green/20 text-accent-green border border-accent-green/30' :
+                            applicant.requestStatus === 'REJECTED' ? 'bg-accent-red/20 text-accent-red border border-accent-red/30' :
+                            'bg-dark-300 text-gray-400'
+                          }`}>
+                            {applicant.requestStatus}
+                          </div>
+                        )}
                       </div>
-                      {applicant.requestStatus && (
-                        <div className={`px-2 py-1 rounded-full text-xs font-medium ${
-                          applicant.requestStatus === 'PENDING' ? 'bg-accent-orange/20 text-accent-orange' :
-                          applicant.requestStatus === 'APPROVED' ? 'bg-accent-green/20 text-accent-green' :
-                          applicant.requestStatus === 'REJECTED' ? 'bg-accent-red/20 text-accent-red' :
-                          'bg-dark-300 text-gray-400'
-                        }`}>
-                          {applicant.requestStatus}
+                      <div className="flex items-center gap-2 text-sm text-gray-400 mb-3">
+                        <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                        <span>{applicant.city}</span>
+                        <span className="text-gray-600">•</span>
+                        <span>{applicant.education}</span>
+                      </div>
+
+                      {/* Skills Section - Smart Grid Display with Match Highlighting */}
+                      {skillsArray.length > 0 && (
+                        <div className={`mb-3 ${viewMode === 'grid' ? 'flex-1' : ''}`}>
+                          <div className="flex items-center gap-2 mb-2">
+                            <svg className="w-4 h-4 text-brand-yellow flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                            </svg>
+                            <span className="text-xs sm:text-sm font-medium text-gray-400">Skills ({skillsArray.length}):</span>
+                            {selectedSkillsArray.length > 0 && (
+                              <span className="text-xs text-brand-yellow/70 flex items-center gap-1">
+                                <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fillRule="evenodd" d="M12.395 2.553a1 1 0 00-1.45-.385c-.345.23-.614.558-.822.88-.214.33-.403.713-.57 1.116-.334.804-.614 1.768-.84 2.734a31.365 31.365 0 00-.613 3.58 2.64 2.64 0 01-.945-1.067c-.328-.68-.398-1.534-.398-2.654A1 1 0 005.05 6.05 6.981 6.981 0 003 11a7 7 0 1011.95-4.95c-.592-.591-.98-.985-1.348-1.467-.363-.476-.724-1.063-1.207-2.03zM12.12 15.12A3 3 0 017 13s.879.5 2.5.5c0-1 .5-4 1.25-4.5.5 1 .786 1.293 1.371 1.879A2.99 2.99 0 0113 13a2.99 2.99 0 01-.879 2.121z" clipRule="evenodd" />
+                                </svg>
+                                Matches
+                              </span>
+                            )}
+                          </div>
+                          {/* Responsive Grid: adjusted for view mode */}
+                          <div className={`grid gap-1.5 sm:gap-2 ${
+                            viewMode === 'list'
+                              ? 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4'
+                              : 'grid-cols-2 sm:grid-cols-2'
+                          }`}>
+                            {skillsArray.map((skill: string, i: number) => {
+                              const isMatched = isSkillMatched(skill);
+                              const categoryInfo = getSkillCategoryInfo(skill);
+
+                              return (
+                                <span
+                                  key={i}
+                                  className={`
+                                    relative px-2.5 py-1.5 rounded-full text-xs sm:text-sm font-medium text-center truncate transition-all duration-300
+                                    ${isMatched
+                                      ? 'bg-brand-yellow/20 text-brand-yellow border-2 border-brand-yellow shadow-lg shadow-brand-yellow/30 animate-pulse'
+                                      : `${categoryInfo.color.bg} ${categoryInfo.color.text} border ${categoryInfo.color.border} hover:shadow-md ${categoryInfo.color.glow}`
+                                    }
+                                  `}
+                                  title={`${skill} (${categoryInfo.category})`}
+                                >
+                                  {isMatched && (
+                                    <span className="absolute -top-1 -right-1 flex h-3 w-3">
+                                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-yellow opacity-75"></span>
+                                      <span className="relative inline-flex rounded-full h-3 w-3 bg-brand-yellow"></span>
+                                    </span>
+                                  )}
+                                  {skill}
+                                </span>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Experience Section */}
+                      {applicant.experience && (
+                        <div className="mb-3">
+                          <div className="flex items-center gap-2 mb-1.5">
+                            <svg className="w-4 h-4 text-brand-yellow flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                            <span className="text-xs sm:text-sm font-medium text-gray-400">Experience:</span>
+                          </div>
+                          <p className="text-sm text-gray-300 line-clamp-2">
+                            {applicant.experience.length > 120
+                              ? `${applicant.experience.substring(0, 120)}...`
+                              : applicant.experience
+                            }
+                          </p>
                         </div>
                       )}
                     </div>
-                    
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 mt-3 sm:mt-4">
-                      <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-400 min-w-0">
-                        <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                        </svg>
-                        <span className="truncate">{applicant.email}</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-400">
-                        <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                        </svg>
-                        <span className="truncate">{applicant.phone}</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-400">
-                        <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                        </svg>
-                        <span className="truncate">{applicant.education}</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-400">
-                        <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  </div>
+
+                  {/* Meeting Details for Requested Candidates */}
+                  {!showRequestButton && (applicant as any).meetingDate && (
+                    <div className="bg-brand-yellow/5 border-2 border-brand-yellow/30 rounded-lg p-3 sm:p-4">
+                      <div className="flex items-center gap-2 mb-3">
+                        <svg className="w-5 h-5 text-brand-yellow flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                         </svg>
-                        <span className="truncate">{new Date(applicant.submittedAt).toLocaleDateString()}</span>
+                        <span className="font-semibold text-brand-yellow text-sm sm:text-base">Interview Scheduled</span>
                       </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
+                        <div className="flex items-center gap-2 text-gray-300">
+                          <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          <span>{new Date((applicant as any).meetingDate).toLocaleString('en-US', {
+                            month: 'short',
+                            day: 'numeric',
+                            hour: 'numeric',
+                            minute: '2-digit'
+                          })}</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-gray-300">
+                          <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          <span>Duration: {(applicant as any).meetingDuration || 30} min</span>
+                        </div>
+                      </div>
+                      {(applicant as any).meetingLink && (
+                        <a
+                          href={(applicant as any).meetingLink}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="mt-3 inline-flex items-center gap-2 px-4 py-2 bg-brand-yellow text-brand-dark rounded-lg font-semibold hover:bg-brand-yellow/90 transition-all text-sm"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                          </svg>
+                          Join Google Meet
+                        </a>
+                      )}
                     </div>
-                  </div>
+                  )}
+
+                  {/* Availability for Unrequested Candidates */}
+                  {showRequestButton && (applicant as any).availableTimeSlots && (() => {
+                    try {
+                      const availability = JSON.parse((applicant as any).availableTimeSlots);
+                      const formattedSlots = availability.map((slot: { date: string; times: string[] }) => {
+                        const times = slot.times.map(time => {
+                          const [hours, minutes] = time.split(':');
+                          const hour = parseInt(hours);
+                          const ampm = hour >= 12 ? 'PM' : 'AM';
+                          const displayHour = hour > 12 ? hour - 12 : hour === 0 ? 12 : hour;
+                          return `${displayHour}:${minutes} ${ampm}`;
+                        }).join(', ');
+                        return `${slot.date} at ${times}`;
+                      }).join(' • ');
+
+                      return (
+                        <div className="bg-dark-300/30 border border-dark-300 rounded-lg p-3">
+                          <div className="flex items-start gap-2">
+                            <svg className="w-4 h-4 text-gray-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <div className="flex-1">
+                              <span className="text-xs sm:text-sm text-gray-400">Available: </span>
+                              <span className="text-xs sm:text-sm text-gray-300 font-medium">{formattedSlots}</span>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    } catch (e) {
+                      // If parsing fails, show raw text
+                      return (
+                        <div className="bg-dark-300/30 border border-dark-300 rounded-lg p-3">
+                          <div className="flex items-center gap-2">
+                            <svg className="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span className="text-xs sm:text-sm text-gray-400">Available:</span>
+                            <span className="text-xs sm:text-sm text-gray-300 font-medium">{(applicant as any).availableTimeSlots}</span>
+                          </div>
+                        </div>
+                      );
+                    }
+                  })()}
 
                   <div className="flex flex-col sm:flex-row gap-2 pt-3 border-t border-dark-300">
                     {applicant.resumeUrl ? (
@@ -368,7 +573,8 @@ export default function EmployerDashboard() {
                   </div>
                 </div>
               </div>
-            ))}
+              );
+            })}
           </div>
         )}
 
@@ -536,7 +742,7 @@ export default function EmployerDashboard() {
                   <h2 className="text-base sm:text-lg lg:text-xl font-semibold text-brand-light">
                     Filter Applicants
                   </h2>
-                  {(filterSearch || filterCity || filterEducation || filterSkills) && (
+                  {(filterSearch || filterCity || filterEducation || filterSkills || selectedSkillsArray.length > 0) && (
                     <span className="bg-brand-yellow text-brand-dark text-xs font-bold px-2 py-0.5 rounded-full">
                       Active
                     </span>
@@ -553,7 +759,37 @@ export default function EmployerDashboard() {
               </div>
             </button>
 
-            {/* Expandable Filter Content */}
+            {/* View Mode Toggle */}
+          <div className="mb-4 flex justify-end gap-2">
+            <button
+              onClick={() => handleViewModeChange('list')}
+              className={`px-3 sm:px-4 py-2 rounded-lg font-medium text-xs sm:text-sm transition-all duration-300 flex items-center gap-2 ${
+                viewMode === 'list'
+                  ? 'bg-brand-yellow text-brand-dark shadow-lg shadow-brand-yellow/20'
+                  : 'bg-dark-400 text-gray-400 hover:bg-dark-300 hover:text-brand-light border border-dark-300'
+              }`}
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+              <span className="hidden sm:inline">List View</span>
+            </button>
+            <button
+              onClick={() => handleViewModeChange('grid')}
+              className={`px-3 sm:px-4 py-2 rounded-lg font-medium text-xs sm:text-sm transition-all duration-300 flex items-center gap-2 ${
+                viewMode === 'grid'
+                  ? 'bg-brand-yellow text-brand-dark shadow-lg shadow-brand-yellow/20'
+                  : 'bg-dark-400 text-gray-400 hover:bg-dark-300 hover:text-brand-light border border-dark-300'
+              }`}
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM14 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1v-4zM14 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z" />
+              </svg>
+              <span className="hidden sm:inline">Grid View</span>
+            </button>
+          </div>
+
+          {/* Expandable Filter Content */}
             <div className={`overflow-hidden transition-all duration-300 ease-in-out ${isFilterExpanded ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'}`}>
               <div className="glass rounded-lg sm:rounded-xl p-3 sm:p-4 lg:p-6 space-y-3 sm:space-y-4">
                 {/* Search */}
@@ -594,18 +830,15 @@ export default function EmployerDashboard() {
                     />
                   </div>
 
-                  {/* Skills */}
-                  <div>
-                    <label className="block text-xs sm:text-sm font-medium text-gray-400 mb-1.5 sm:mb-2">Skills</label>
-                    <input
-                      type="text"
-                      value={filterSkills}
-                      onChange={(e) => setFilterSkills(e.target.value)}
-                      placeholder="e.g., JavaScript"
-                      className="w-full px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base rounded-lg bg-dark-400 border-2 border-dark-300 text-brand-light transition-all focus:outline-none focus:ring-2 focus:ring-brand-yellow focus:border-brand-yellow"
-                    />
-                  </div>
                 </div>
+
+                {/* Multi-Select Skill Filter */}
+                <SkillFilter
+                  selectedSkills={selectedSkillsArray}
+                  onSkillsChange={setSelectedSkillsArray}
+                  matchMode={skillMatchMode}
+                  onMatchModeChange={setSkillMatchMode}
+                />
 
                 {/* Action Buttons */}
                 <div className="flex gap-2 sm:gap-3">

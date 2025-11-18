@@ -50,7 +50,7 @@ import { extractPathFromUrl, getSignedUrl, downloadPrivateFile } from '@/lib/sup
  *         description: Internal server error
  */
 async function validateFileAccess(request: NextRequest): Promise<{ user: any; fileParam: string } | NextResponse> {
-  // Check authentication - only authenticated employers can view files
+  // Check authentication - authenticated employers and admins can view files
   const user = await getCurrentUser();
   if (!user) {
     return NextResponse.json(
@@ -59,7 +59,22 @@ async function validateFileAccess(request: NextRequest): Promise<{ user: any; fi
     );
   }
 
-  // Verify employer profile
+  // Admins have full access to all files
+  if (user.role === 'ADMIN') {
+    const { searchParams } = new URL(request.url);
+    const fileParam = searchParams.get('file');
+
+    if (!fileParam) {
+      return NextResponse.json(
+        { success: false, error: 'File parameter is required' },
+        { status: 400 }
+      );
+    }
+
+    return { user, fileParam };
+  }
+
+  // Verify employer profile for non-admin users
   const employerProfile = await getEmployerProfile(user.userId);
   if (!employerProfile) {
     return NextResponse.json(

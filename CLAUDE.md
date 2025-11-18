@@ -20,7 +20,11 @@ A comprehensive admin dashboard is now fully implemented at `/adminofjb/*`. This
 - **Requests Management:** View, update status, and delete all employer-to-candidate requests
 - **Candidates Management:** Full CRUD operations for candidate applications with search and filtering
 - **Employers Management:** View, search, filter, and manage all employer accounts
-- **Platform Settings:** Configure maintenance mode, registrations, and platform-wide settings
+- **Platform Settings:** Configure and enforce maintenance mode, registrations, and platform-wide settings
+  - ✅ **Fully Enforced** - Settings actively control platform behavior
+  - Maintenance mode redirects non-admin users to `/maintenance`
+  - Toggle employee applications on/off
+  - Toggle employer registrations on/off
 - **Audit Logging:** Complete audit trail of all admin actions with timestamps and details
 - **Contact Information:** Click-to-call and WhatsApp integration for all phone numbers
 
@@ -40,12 +44,19 @@ A comprehensive admin dashboard is now fully implemented at `/adminofjb/*`. This
 
 **Key Features:**
 - Public employee application submission (no auth required)
+- **Advanced Skills System** (✅ Fully Implemented):
+  - Predefined Skills Selection - Custom SkillSelector component for restaurant/hospitality roles
+  - Multi-select skill filtering with OR/AND logic for employers
+  - Color-coded skill badges by category (Kitchen/Service/Management)
+  - Skills matching indicator with animated yellow glow
+  - Comprehensive skills analytics in admin dashboard
+  - List/Grid view toggle with localStorage persistence
 - Dedicated Arabic employer landing page at `/employers` with IBM Plex Sans Arabic font
 - Secure employer dashboard with JWT authentication
-- **Full admin dashboard** with platform oversight and audit logging
+- **Full admin dashboard** with platform oversight, audit logging, and skills analytics
 - Google Calendar integration for interview scheduling
 - Automated meeting cleanup via background tasks
-- CV upload with Cloudinary integration
+- CV upload with Supabase Storage (primary) and Cloudinary (fallback) integration
 - Email notifications via Resend
 - Click-to-call and WhatsApp integration for contact information
 
@@ -201,6 +212,12 @@ components/                    # Reusable UI components
 │   ├── ConfirmDialog.tsx      # Confirmation modal
 │   ├── StatCard.tsx           # Statistics display
 │   └── StatusBadge.tsx        # Status indicators
+├── SkillSelector.tsx          # Multi-select skill picker for predefined hospitality skills
+├── Button.tsx                 # Primary button component
+├── Input.tsx                  # Form input component
+├── FileUpload.tsx             # File upload component
+├── Navbar.tsx                 # Main navigation bar
+└── index.ts                   # Component exports
 features/                      # Feature-specific React hooks
 lib/                           # Utility libraries
 ├── db.ts                      # Prisma client singleton
@@ -285,6 +302,75 @@ Key constraint: `@@unique([employeeId, employerId])` prevents duplicate requests
 - Zod schemas in `backend/validators/*.ts`
 - Validation happens in controllers before passing to services
 - Type-safe runtime validation
+
+**9. Skills System** (✅ Fully Implemented)
+
+### A. Skills Selection (`components/SkillSelector.tsx`)
+- Multi-select checkbox interface for candidate applications
+- **Predefined Skills** (Restaurant/Hospitality Industry):
+  1. Barista / Coffee Maker (Kitchen)
+  2. Chef / Cook (Kitchen)
+  3. Kitchen Assistant (Kitchen)
+  4. Baker / Pastry (Kitchen)
+  5. Waiter / Customer Service (Service)
+  6. Cashier (Service)
+  7. Cleaner / Steward (Service)
+  8. Restaurant Supervisor / Manager (Management)
+- **Features:**
+  - Visual checkbox grid with yellow glow on selection
+  - Selection counter and "Clear all" functionality
+  - Responsive layout (1 column mobile, 2 columns desktop)
+  - Validation: Minimum 1 skill required
+
+### B. Skills Filtering (`components/employer/SkillFilter.tsx`)
+- **Multi-select filter** for employer dashboard
+- **Match Modes:**
+  - **Match Any (OR)** - Show candidates with at least one selected skill
+  - **Match All (AND)** - Show only candidates with all selected skills
+- **Features:**
+  - Expandable/collapsible interface
+  - Select All / Clear All functionality
+  - Active filters summary with removable chips
+  - Backend support in `backend/services/employee.service.ts`
+
+### C. Skills Categorization (`lib/skill-categories.ts`)
+- **Color-Coded Categories:**
+  - **Kitchen** (Orange/Red): Chef, Barista, Baker, Kitchen Assistant
+  - **Service** (Blue): Waiter, Cashier, Cleaner/Steward
+  - **Management** (Purple): Restaurant Supervisor/Manager
+- **Features:**
+  - Category-specific color schemes with glow effects
+  - Utility functions for grouping skills by category
+  - Tooltip shows skill category on hover
+
+### D. Skills Matching Indicator
+- **Visual highlighting** of matched skills on employer dashboard
+- **Features:**
+  - Yellow glow and pulsing animation on matched skills
+  - Animated ping indicator
+  - "Matches" label when filters are active
+
+### E. Skills Analytics (Admin Dashboard)
+- **Location:** `app/adminofjb/dashboard/page.tsx`
+- **Charts:**
+  - Top Skills Bar Chart (horizontal) - Top 8 most in-demand skills
+  - Skills Distribution - Full overview with progress bars
+  - Skills Insights Summary - 3 key metrics
+- **Backend:** `backend/services/admin.service.ts`
+  - `getSkillsDistribution()` - Parse all candidate skills
+  - `getTopSkills()` - Get most popular skills
+
+### F. View Modes (Employer Dashboard)
+- **List View** (default) - Compact vertical layout, 4-column skill grid
+- **Grid View** - 2-column card layout, 2-column skill grid
+- **localStorage persistence** - Preference saved across sessions
+- Smooth transitions between view modes
+
+### G. Data Flow
+- **Frontend:** Skills stored as array (`string[]`)
+- **API:** Converted to comma-separated string
+- **Database:** Stored as TEXT field in `EmployeeApplication.skills`
+- **Display:** Parsed back to array for filtering and display
 
 ### Important Implementation Details
 
@@ -435,6 +521,206 @@ When using a private Supabase bucket (recommended):
 **Common Issues:**
 - ❌ **Error: "Can't reach database server"** → You're using direct connection instead of pooler
 - ✅ **Solution:** Use the Session Pooler URL (ends with `pooler.supabase.com`)
+
+## ✅ Completed Features (Previously Planned)
+
+The following features from the roadmap have been **fully implemented**:
+
+### 1. ✅ Enhanced Skill-Based Filtering (Employer Dashboard)
+
+**Implementation Status: COMPLETE**
+
+**Implemented Features:**
+
+**A. ✅ Backend Implementation:**
+- **Location:** `backend/services/employee.service.ts`
+- **Implemented:**
+  ```typescript
+  // Full OR/AND logic support
+  if (matchMode === 'all') {
+    // Match ALL skills (AND logic)
+    where.AND = filters.skills.map((skill) => ({
+      skills: { contains: skill, mode: 'insensitive' },
+    }));
+  } else {
+    // Match ANY skill (OR logic)
+    where.OR = filters.skills.map((skill) => ({
+      skills: { contains: skill, mode: 'insensitive' },
+    }));
+  }
+  ```
+- **Files Modified:**
+  - `backend/services/employee.service.ts` - Added filtering logic
+  - `backend/types.ts` - Added `skillMatchMode: 'any' | 'all'`
+
+**B. ✅ Frontend Implementation:**
+- **Component Created:** `components/employer/SkillFilter.tsx`
+- **Features Implemented:**
+  - Multi-select checkbox interface with all 8 predefined skills
+  - "Match Any (OR)" vs "Match All (AND)" toggle
+  - Select All / Clear All buttons
+  - Active filters summary with removable chips
+  - Expandable/collapsible interface
+- **Integration:** Fully integrated into `app/employer/dashboard/page.tsx`
+
+**C. ✅ API Route Updates:**
+- **Locations:**
+  - `app/api/employer/applicants/route.ts`
+  - `app/api/employer/applicants/requested/route.ts`
+- **Implemented:**
+  - Skills parsing from comma-separated string to array
+  - `skillMatchMode` parameter support
+  - Example: `/api/employer/applicants?skills=Chef,Waiter&skillMatchMode=any`
+
+**D. ✅ Database Approach:**
+- **Current Implementation:** Option 1 (TEXT field with LIKE queries)
+  - ✅ No migration required
+  - ✅ Working efficiently with current data volume
+  - Performance is acceptable for expected scale
+
+### 2. ✅ Enhanced Candidate Card Display
+
+**Implementation Status: COMPLETE**
+
+**Implemented Features:**
+
+**A. ✅ Candidate Card Enhancement:**
+- **Location:** `app/employer/dashboard/page.tsx` (lines 272-320)
+- **Implemented:**
+  - Skills displayed as prominent pill badges in responsive grid
+  - Color-coded by category using `lib/skill-categories.ts`:
+    - Kitchen roles: Orange/Red badges
+    - Service roles: Blue badges
+    - Management: Purple badges
+  - Skills section positioned prominently below candidate name
+  - Responsive grid: 2 cols mobile, 3 cols tablet, 4 cols desktop
+
+**B. ✅ Skill Matching Indicator:**
+- **Implemented:** Full visual matching system
+- **Features:**
+  - Yellow glow and border-2 on matched skills
+  - Animated pulse effect
+  - Animated ping indicator (dot with expanding ring)
+  - "Matches" label with fire icon when filters active
+  - Helper function `isSkillMatched()` for matching logic
+
+**C. ✅ Card Layout:**
+- **Implemented Priority Order:**
+  1. Candidate name + profile photo
+  2. Location + Education (icons)
+  3. **Skills badges** (prominent, color-coded, with match indicators)
+  4. Experience section (expandable)
+  5. Availability (for unrequested candidates)
+  6. Meeting details (for requested candidates)
+  7. Action buttons (View Resume, Request/Approve/Reject)
+
+**D. ✅ Detailed View:**
+- Skills displayed in full grid with category colors
+- No truncation - all skills visible
+- Hover tooltips show skill category
+
+**E. ✅ List vs Grid View Toggle:**
+- **Implemented:** Full view mode system
+- **List View:** Compact vertical layout, 4-column skill grid
+- **Grid View:** 2-column card layout, 2-column skill grid
+- **localStorage persistence:** Key `employer-dashboard-view-mode`
+- Toggle buttons with icons at top of dashboard
+
+### 3. ✅ Skills Analytics
+
+**Implementation Status: COMPLETE**
+
+**Implemented in Admin Dashboard:**
+- **Location:** `app/adminofjb/dashboard/page.tsx`
+- **Backend:** `backend/services/admin.service.ts`
+  - `getSkillsDistribution()` - Parse and count all skills
+  - `getTopSkills(limit)` - Get most popular skills
+
+**Charts Implemented:**
+1. **Top Skills Bar Chart** (Horizontal)
+   - Shows top 8 most in-demand skills
+   - Yellow bars with dark background
+   - Responsive container
+
+2. **Skills Distribution Overview**
+   - Full list with progress bars
+   - Shows count for each skill
+   - Scrollable with custom yellow scrollbar
+   - Hover effects on bars
+
+3. **Skills Insights Summary Cards**
+   - Most Popular Skill (with count)
+   - Total Skills Available
+   - Average Skills per Candidate
+
+**Data Flow:**
+- Backend fetches all candidates' skills
+- Parses comma-separated values
+- Aggregates counts per skill
+- Returns sorted by popularity
+
+### Implementation Status Summary
+
+**✅ Phase 1 (High Priority) - COMPLETE:**
+1. ✅ SkillSelector component
+2. ✅ Enhanced candidate card display with skill badges
+3. ✅ Employer skill-based filtering UI
+
+**✅ Phase 2 (Medium Priority) - COMPLETE:**
+4. ✅ Skills matching indicator
+5. ✅ Detailed view enhancements (color categorization)
+6. ✅ List/Grid toggle for candidate browsing
+
+**✅ Phase 3 (Partially Complete):**
+7. ✅ Skills analytics dashboard
+8. ⏳ Dynamic skills management system (Future)
+9. ⏳ Convert database field to array type (Not needed - current performance acceptable)
+
+## Future Development Roadmap
+
+### 1. Dynamic Skills Management (Admin Feature)
+
+**Status: Planned for Future**
+
+**Long-term Enhancement:**
+- Allow admins to add/edit/remove predefined skills via admin UI
+- Store skills in `PlatformSettings` or new `Skills` table
+- Update SkillSelector to fetch from database instead of hardcoded array
+- **Benefits:** Adaptable to different industries without code changes
+
+**Implementation Considerations:**
+- Migration script to seed current 8 skills into database
+- Admin UI page at `/adminofjb/skills`
+- API endpoints for CRUD operations on skills
+- Update both SkillSelector and SkillFilter to use dynamic data
+
+### 2. Advanced Skills Features
+
+**Potential Enhancements:**
+- **Skill Proficiency Levels:** Allow candidates to rate their skill level (Beginner/Intermediate/Expert)
+- **Skill Certifications:** Attach certificates or proof to specific skills
+- **Skills Gap Analysis:** Show employers what skills are lacking in their area
+- **Skills Recommendations:** Suggest related skills to candidates based on their selections
+- **Skills Endorsements:** Allow employers to endorse candidate skills after hiring
+
+### Technical Notes for Future Developers
+
+**When Implementing Skill Filters:**
+- Remember skills are currently stored as `"Skill1, Skill2, Skill3"` format
+- Always trim whitespace when parsing: `skills.split(',').map(s => s.trim())`
+- Use case-insensitive matching for robustness
+- Consider partial matching (e.g., "Chef" matches "Chef / Cook")
+
+**When Updating Candidate Cards:**
+- Maintain responsive design (mobile-first)
+- Keep yellow (#FEE715) for skill highlights to match brand
+- Use glassmorphism effect for skill badges consistency
+- Test with long skill names (e.g., "Restaurant Supervisor / Manager")
+
+**Database Query Performance:**
+- If candidate count exceeds 10,000, consider migrating to array type
+- Add database index on skills field if filtering is slow
+- Use pagination effectively (keep limit at 10-20 per page)
 
 ## Design System
 

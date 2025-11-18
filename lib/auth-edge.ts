@@ -10,6 +10,17 @@ export interface JWTPayload {
   role: string;
 }
 
+export interface PlatformSettings {
+  maintenanceMode: boolean;
+  allowNewRegistrations: boolean;
+  allowNewApplications: boolean;
+}
+
+// Cache for platform settings to avoid repeated database calls
+let settingsCache: PlatformSettings | null = null;
+let cacheTimestamp = 0;
+const CACHE_DURATION = 60 * 1000; // 1 minute cache
+
 /**
  * Verify JWT token using jose (Edge Runtime compatible)
  */
@@ -42,6 +53,55 @@ export async function generateTokenEdge(payload: JWTPayload): Promise<string> {
     .setIssuedAt()
     .setExpirationTime('7d')
     .sign(JWT_SECRET);
-  
+
   return jwt;
+}
+
+/**
+ * Get platform settings with caching (Edge Runtime compatible)
+ * Uses fetch to call the API endpoint instead of direct database access
+ */
+export async function getPlatformSettingsEdge(): Promise<PlatformSettings> {
+  const now = Date.now();
+
+  // Return cached settings if still valid
+  if (settingsCache && (now - cacheTimestamp) < CACHE_DURATION) {
+    return settingsCache;
+  }
+
+  try {
+    // Fetch settings from API endpoint
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+    const response = await fetch(`${baseUrl}/api/settings/public`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      cache: 'no-store',
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch settings');
+    }
+
+    const settings = await response.json();
+
+    // Update cache
+    settingsCache = {
+      maintenanceMode: settings.maintenanceMode ?? false,
+      allowNewRegistrations: settings.allowNewRegistrations ?? true,
+      allowNewApplications: settings.allowNewApplications ?? true,
+    };
+    cacheTimestamp = now;
+
+    return settingsCache;
+  } catch (error) {
+    console.error('Error fetching platform settings:', error);
+    // Return safe defaults if fetch fails
+    return {
+      maintenanceMode: false,
+      allowNewRegistrations: true,
+      allowNewApplications: true,
+    };
+  }
 }

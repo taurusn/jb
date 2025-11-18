@@ -214,7 +214,6 @@ export default function InterviewScheduler({
             <h4 className="text-sm font-semibold text-brand-yellow mb-2">Interview Summary</h4>
             <div className="space-y-1 text-sm text-gray-300">
               <p><span className="text-gray-500">Candidate:</span> {candidateName}</p>
-              <p><span className="text-gray-500">Email:</span> {candidateEmail}</p>
               <p><span className="text-gray-500">Date:</span> {formatDate(selectedDate)}</p>
               <p><span className="text-gray-500">Time:</span> {selectedTime}</p>
               <p><span className="text-gray-500">Duration:</span> {DURATIONS.find(d => d.value === selectedDuration)?.label}</p>

@@ -61,14 +61,22 @@ export async function GET(request: NextRequest) {
 
     // Extract query parameters
     const { searchParams } = new URL(request.url);
+
+    // Parse skills from comma-separated string to array
+    const skillsParam = searchParams.get('skills');
+    const skillsArray = skillsParam
+      ? skillsParam.split(',').map(s => s.trim()).filter(Boolean)
+      : undefined;
+
     const query = {
       page: searchParams.get('page'),
       limit: searchParams.get('limit'),
       city: searchParams.get('city') || undefined,
       education: searchParams.get('education') || undefined,
-      skills: searchParams.get('skills') || undefined,
+      skills: skillsArray,
       experience: searchParams.get('experience') || undefined,
       search: searchParams.get('search') || undefined,
+      skillMatchMode: (searchParams.get('skillMatchMode') as 'any' | 'all') || undefined,
     };
 
     console.log('Requested applicants query params:', query);

@@ -6,28 +6,43 @@ import { StatusBadge, ContactCard, ConfirmDialog } from '@/components/admin';
 
 interface EmployerDetail {
   id: string;
+  userId: string;
+  companyName: string;
+  contactPerson: string;
+  phone: string;
+  industry: string;
+  companySize: string | null;
+  companyWebsite: string | null;
+  createdAt: string;
+  updatedAt: string;
   user: {
+    id: string;
     email: string;
     role: string;
     createdAt: string;
     updatedAt: string;
   };
-  profile: {
-    companyName: string;
-    contactName: string;
-    phoneNumber: string;
-    industry: string;
-  } | null;
-  requests: {
+  employeeRequests: {
     id: string;
     status: 'PENDING' | 'APPROVED' | 'REJECTED';
-    createdAt: string;
+    requestedAt: string;
     employee: {
+      id: string;
       fullName: string;
-      position: string;
+      phone: string;
+      email: string;
       city: string;
+      education: string;
+      skills: string;
     };
   }[];
+  stats: {
+    totalRequests: number;
+    pendingRequests: number;
+    approvedRequests: number;
+    rejectedRequests: number;
+    activeInterviews: number;
+  };
 }
 
 export default function EmployerDetailPage({
@@ -148,46 +163,58 @@ export default function EmployerDetailPage({
               <h2 className="text-2xl font-bold text-white">Company Information</h2>
             </div>
 
-            {employer.profile ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="text-sm text-gray-400 block mb-1">Company Name</label>
-                  <p className="text-white font-semibold text-lg">
-                    {employer.profile.companyName}
-                  </p>
-                </div>
-
-                <div>
-                  <label className="text-sm text-gray-400 block mb-1">Contact Person</label>
-                  <p className="text-white font-semibold text-lg">
-                    {employer.profile.contactName}
-                  </p>
-                </div>
-
-                <div>
-                  <label className="text-sm text-gray-400 block mb-1">Industry</label>
-                  <p className="text-white">{employer.profile.industry}</p>
-                </div>
-
-                <div className="md:col-span-2">
-                  <label className="text-sm text-gray-400 block mb-2">
-                    Contact Information
-                  </label>
-                  <ContactCard
-                    name={employer.profile.contactName || employer.user.email}
-                    email={employer.user.email}
-                    phone={employer.profile.phoneNumber}
-                  />
-                </div>
-              </div>
-            ) : (
-              <div className="text-center py-8 bg-white/5 rounded-lg border border-white/10">
-                <p className="text-gray-400">No profile information available</p>
-                <p className="text-sm text-gray-500 mt-2">
-                  This employer has not completed their profile yet
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="text-sm text-gray-400 block mb-1">Company Name</label>
+                <p className="text-white font-semibold text-lg">
+                  {employer.companyName}
                 </p>
               </div>
-            )}
+
+              <div>
+                <label className="text-sm text-gray-400 block mb-1">Contact Person</label>
+                <p className="text-white font-semibold text-lg">
+                  {employer.contactPerson}
+                </p>
+              </div>
+
+              <div>
+                <label className="text-sm text-gray-400 block mb-1">Industry</label>
+                <p className="text-white">{employer.industry || 'Not specified'}</p>
+              </div>
+
+              {employer.companySize && (
+                <div>
+                  <label className="text-sm text-gray-400 block mb-1">Company Size</label>
+                  <p className="text-white">{employer.companySize}</p>
+                </div>
+              )}
+
+              {employer.companyWebsite && (
+                <div>
+                  <label className="text-sm text-gray-400 block mb-1">Website</label>
+                  <a
+                    href={employer.companyWebsite.startsWith('http') ? employer.companyWebsite : `https://${employer.companyWebsite}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[#FEE715] hover:underline"
+                  >
+                    {employer.companyWebsite}
+                  </a>
+                </div>
+              )}
+
+              <div className="md:col-span-2">
+                <label className="text-sm text-gray-400 block mb-2">
+                  Contact Information
+                </label>
+                <ContactCard
+                  name={employer.contactPerson}
+                  email={employer.user.email}
+                  phone={employer.phone}
+                />
+              </div>
+            </div>
           </div>
 
           {/* Account Information */}
@@ -240,13 +267,13 @@ export default function EmployerDetailPage({
               <span className="text-3xl">📋</span>
               <h2 className="text-2xl font-bold text-white">Request History</h2>
               <span className="ml-auto px-3 py-1 bg-[#FEE715]/20 text-[#FEE715] rounded-full text-sm font-semibold">
-                {employer.requests.length}
+                {employer.employeeRequests.length}
               </span>
             </div>
 
-            {employer.requests.length > 0 ? (
+            {employer.employeeRequests.length > 0 ? (
               <div className="space-y-3">
-                {employer.requests.map((request) => (
+                {employer.employeeRequests.map((request) => (
                   <div
                     key={request.id}
                     onClick={() => router.push(`/adminofjb/requests/${request.id}`)}
@@ -258,14 +285,14 @@ export default function EmployerDetailPage({
                           {request.employee.fullName}
                         </p>
                         <p className="text-sm text-gray-400">
-                          {request.employee.position} • {request.employee.city}
+                          {request.employee.education} • {request.employee.city}
                         </p>
                       </div>
                       <StatusBadge status={request.status} />
                     </div>
                     <p className="text-sm text-gray-400">
                       Requested on{' '}
-                      {new Date(request.createdAt).toLocaleDateString('en-US', {
+                      {new Date(request.requestedAt).toLocaleDateString('en-US', {
                         month: 'short',
                         day: 'numeric',
                         year: 'numeric',
@@ -298,28 +325,35 @@ export default function EmployerDetailPage({
               <div className="bg-white/5 rounded-lg p-4 border border-white/10">
                 <p className="text-sm text-gray-400 mb-1">Total Requests</p>
                 <p className="text-3xl font-bold text-[#FEE715]">
-                  {employer.requests.length}
+                  {employer.stats.totalRequests}
                 </p>
               </div>
 
               <div className="bg-white/5 rounded-lg p-4 border border-white/10">
                 <p className="text-sm text-gray-400 mb-1">Pending</p>
                 <p className="text-3xl font-bold text-yellow-400">
-                  {employer.requests.filter((r) => r.status === 'PENDING').length}
+                  {employer.stats.pendingRequests}
                 </p>
               </div>
 
               <div className="bg-white/5 rounded-lg p-4 border border-white/10">
                 <p className="text-sm text-gray-400 mb-1">Approved</p>
                 <p className="text-3xl font-bold text-green-400">
-                  {employer.requests.filter((r) => r.status === 'APPROVED').length}
+                  {employer.stats.approvedRequests}
                 </p>
               </div>
 
               <div className="bg-white/5 rounded-lg p-4 border border-white/10">
                 <p className="text-sm text-gray-400 mb-1">Rejected</p>
                 <p className="text-3xl font-bold text-red-400">
-                  {employer.requests.filter((r) => r.status === 'REJECTED').length}
+                  {employer.stats.rejectedRequests}
+                </p>
+              </div>
+
+              <div className="bg-white/5 rounded-lg p-4 border border-white/10">
+                <p className="text-sm text-gray-400 mb-1">Active Interviews</p>
+                <p className="text-3xl font-bold text-blue-400">
+                  {employer.stats.activeInterviews}
                 </p>
               </div>
             </div>
@@ -344,13 +378,13 @@ export default function EmployerDetailPage({
                 </p>
               </div>
 
-              {employer.requests.length > 0 && (
+              {employer.employeeRequests.length > 0 && (
                 <>
                   <div>
                     <label className="text-gray-400 block mb-1">First Request</label>
                     <p className="text-white">
                       {new Date(
-                        Math.min(...employer.requests.map((r) => new Date(r.createdAt).getTime()))
+                        Math.min(...employer.employeeRequests.map((r) => new Date(r.requestedAt).getTime()))
                       ).toLocaleDateString('en-US', {
                         month: 'short',
                         day: 'numeric',
@@ -363,7 +397,7 @@ export default function EmployerDetailPage({
                     <label className="text-gray-400 block mb-1">Latest Request</label>
                     <p className="text-white">
                       {new Date(
-                        Math.max(...employer.requests.map((r) => new Date(r.createdAt).getTime()))
+                        Math.max(...employer.employeeRequests.map((r) => new Date(r.requestedAt).getTime()))
                       ).toLocaleDateString('en-US', {
                         month: 'short',
                         day: 'numeric',
@@ -438,9 +472,9 @@ export default function EmployerDetailPage({
         isOpen={showDeleteDialog}
         title="Delete Employer"
         message={`Are you sure you want to delete ${
-          employer.profile?.companyName || 'this employer'
+          employer.companyName
         }? This will also delete their account and all ${
-          employer.requests.length
+          employer.employeeRequests.length
         } associated requests. This action cannot be undone.`}
         confirmText="Delete"
         cancelText="Cancel"

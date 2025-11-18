@@ -351,7 +351,7 @@ export async function handleGetEmployerById(request: NextRequest, id: string) {
 
     const employer = await adminService.getEmployerById(id);
 
-    return NextResponse.json(employer, { status: 200 });
+    return NextResponse.json({ employer }, { status: 200 });
   } catch (error) {
     console.error('Error in handleGetEmployerById:', error);
     const status = error instanceof Error && error.message === 'Employer not found' ? 404 : 500;

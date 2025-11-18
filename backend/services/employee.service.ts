@@ -97,11 +97,21 @@ export async function getEmployeeApplications(
       ];
     }
 
-    // Skills filter (array of skills)
+    // Skills filter (array of skills) with match mode support
     if (filters.skills && filters.skills.length > 0) {
-      where.AND = filters.skills.map((skill) => ({
-        skills: { contains: skill, mode: 'insensitive' },
-      }));
+      const matchMode = filters.skillMatchMode || 'any'; // Default to 'any' (OR)
+
+      if (matchMode === 'all') {
+        // Match ALL skills (AND logic) - candidate must have ALL selected skills
+        where.AND = filters.skills.map((skill) => ({
+          skills: { contains: skill, mode: 'insensitive' },
+        }));
+      } else {
+        // Match ANY skill (OR logic) - candidate must have AT LEAST ONE selected skill
+        where.OR = filters.skills.map((skill) => ({
+          skills: { contains: skill, mode: 'insensitive' },
+        }));
+      }
     }
 
     // Get total count
@@ -214,11 +224,21 @@ export async function getUnrequestedEmployeeApplications(
       ];
     }
 
-    // Skills filter
+    // Skills filter with match mode support
     if (filters.skills && filters.skills.length > 0) {
-      where.AND = filters.skills.map((skill) => ({
-        skills: { contains: skill, mode: 'insensitive' },
-      }));
+      const matchMode = filters.skillMatchMode || 'any'; // Default to 'any' (OR)
+
+      if (matchMode === 'all') {
+        // Match ALL skills (AND logic)
+        where.AND = filters.skills.map((skill) => ({
+          skills: { contains: skill, mode: 'insensitive' },
+        }));
+      } else {
+        // Match ANY skill (OR logic)
+        where.OR = filters.skills.map((skill) => ({
+          skills: { contains: skill, mode: 'insensitive' },
+        }));
+      }
     }
 
     // Exclude applications that have already been requested by this employer
@@ -302,11 +322,21 @@ export async function getRequestedEmployeeApplications(
       ];
     }
 
-    // Skills filter
+    // Skills filter with match mode support
     if (filters.skills && filters.skills.length > 0) {
-      applicationWhere.AND = filters.skills.map((skill) => ({
-        skills: { contains: skill, mode: 'insensitive' },
-      }));
+      const matchMode = filters.skillMatchMode || 'any'; // Default to 'any' (OR)
+
+      if (matchMode === 'all') {
+        // Match ALL skills (AND logic)
+        applicationWhere.AND = filters.skills.map((skill) => ({
+          skills: { contains: skill, mode: 'insensitive' },
+        }));
+      } else {
+        // Match ANY skill (OR logic)
+        applicationWhere.OR = filters.skills.map((skill) => ({
+          skills: { contains: skill, mode: 'insensitive' },
+        }));
+      }
     }
 
     // Only include applications that have been requested by this employer
@@ -330,6 +360,10 @@ export async function getRequestedEmployeeApplications(
             id: true,
             status: true,
             requestedAt: true,
+            meetingDate: true,
+            meetingDuration: true,
+            meetingLink: true,
+            meetingEndsAt: true,
           },
         },
       },

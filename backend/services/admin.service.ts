@@ -146,6 +146,10 @@ export async function getDashboardStats() {
     // Candidates by education
     const candidatesByEducation = await getCandidatesByEducation();
 
+    // Skills analytics
+    const skillsDistribution = await getSkillsDistribution();
+    const topSkills = await getTopSkills(8); // Top 8 skills
+
     return {
       totalCandidates,
       candidatesGrowth,
@@ -165,6 +169,8 @@ export async function getDashboardStats() {
       },
       topCities,
       candidatesByEducation,
+      skillsDistribution,
+      topSkills,
     };
   } catch (error) {
     console.error('Error fetching dashboard stats:', error);
@@ -234,6 +240,40 @@ async function getCandidatesByEducation() {
     education: c.education,
     count: c._count.education,
   }));
+}
+
+async function getSkillsDistribution() {
+  // Get all candidates with their skills
+  const candidates = await db.employeeApplication.findMany({
+    select: {
+      skills: true,
+    },
+  });
+
+  // Parse skills and count occurrences
+  const skillCounts: Record<string, number> = {};
+
+  candidates.forEach((candidate) => {
+    if (candidate.skills) {
+      // Split comma-separated skills
+      const skillsArray = candidate.skills.split(',').map(s => s.trim()).filter(Boolean);
+      skillsArray.forEach((skill) => {
+        skillCounts[skill] = (skillCounts[skill] || 0) + 1;
+      });
+    }
+  });
+
+  // Convert to array and sort by count
+  const skillsDistribution = Object.entries(skillCounts)
+    .map(([skill, count]) => ({ skill, count }))
+    .sort((a, b) => b.count - a.count);
+
+  return skillsDistribution;
+}
+
+async function getTopSkills(limit: number = 5) {
+  const skillsDistribution = await getSkillsDistribution();
+  return skillsDistribution.slice(0, limit);
 }
 
 // ============================================
@@ -639,17 +679,22 @@ export async function getEmployerById(id: string) {
           select: {
             id: true,
             email: true,
+            role: true,
             createdAt: true,
+            updatedAt: true,
           },
         },
         employeeRequests: {
           include: {
             employee: {
               select: {
+                id: true,
                 fullName: true,
                 phone: true,
                 email: true,
                 city: true,
+                education: true,
+                skills: true,
               },
             },
           },

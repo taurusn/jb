@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { handleEmployeeSubmission } from '@/backend/controllers/employee.controller';
 import { uploadFile } from '@/lib/upload';
+import { prisma as db } from '@/lib/db';
 
 /**
  * @openapi
@@ -50,11 +51,29 @@ import { uploadFile } from '@/lib/upload';
  *         description: Application submitted successfully
  *       400:
  *         description: Validation error
+ *       403:
+ *         description: Applications are currently closed
  *       500:
  *         description: Internal server error
  */
 export async function POST(request: NextRequest) {
   try {
+    // Check if applications are allowed
+    const settings = await db.platformSettings.findFirst({
+      where: { id: 'default' },
+      select: { allowNewApplications: true },
+    });
+
+    if (settings && settings.allowNewApplications === false) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'New job applications are currently closed. Please check back later.'
+        },
+        { status: 403 }
+      );
+    }
+
     const formData = await request.formData();
 
     console.log('=== FORM SUBMISSION DEBUG ===');
