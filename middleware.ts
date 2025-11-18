@@ -6,10 +6,14 @@ import { verifyTokenEdge, getPlatformSettingsEdge } from '@/lib/auth-edge';
  * Middleware to protect routes and enforce platform settings
  *
  * Protected routes:
- * - /employer/* - Only accessible to authenticated employers
+ * - /employer/* - Only accessible to authenticated employers (dashboard)
  * - /api/employer/* - Only accessible to authenticated employers
  * - /adminofjb/* - Only accessible to authenticated admins
  * - /api/adminofjb/* - Only accessible to authenticated admins
+ *
+ * Public routes:
+ * - /employers - Public employer landing page (no authentication required)
+ * - / - Public job seeker application page
  *
  * Platform settings enforcement:
  * - Maintenance mode redirects non-admin users to /maintenance
@@ -27,7 +31,7 @@ export async function middleware(request: NextRequest) {
   const isPublicSettingsApi = pathname === '/api/settings/public';
 
   // Check if route needs protection
-  const isEmployerRoute = pathname.startsWith('/employer');
+  const isEmployerRoute = pathname.startsWith('/employer/');
   const isEmployerApiRoute = pathname.startsWith('/api/employer');
   const isAdminRoute = pathname.startsWith('/adminofjb');
   const isAdminApiRoute = pathname.startsWith('/api/adminofjb');
@@ -171,10 +175,9 @@ export const config = {
     '/api/employer/:path*',
     '/adminofjb/:path*',
     '/api/adminofjb/:path*',
-    // Public routes that need settings checks
+    // Public routes that need settings checks (maintenance mode)
     '/',
     '/login',
-    '/employers',
     '/maintenance',
     '/api/settings/public',
     // Exclude static files and Next.js internals
