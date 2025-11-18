@@ -2,7 +2,10 @@
   "permissions": {
     "allow": [
       "Bash(npm run build:*)",
-      "Bash(npx prisma migrate:*)"
+      "Bash(npx prisma migrate:*)",
+      "Bash(cat:*)",
+      "Bash(/dev/null)",
+      "Bash(ssh-add:*)"
     ],
     "deny": [],
     "ask": []

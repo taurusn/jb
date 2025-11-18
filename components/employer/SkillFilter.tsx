@@ -29,7 +29,7 @@ export default function SkillFilter({
   onMatchModeChange,
   disabled = false,
 }: SkillFilterProps) {
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(true);
 
   const toggleSkill = (skill: string) => {
     if (disabled) return;
@@ -97,10 +97,9 @@ export default function SkillFilter({
       </button>
 
       {/* Expandable Content */}
-      {isExpanded && (
-        <div className="space-y-4 animate-slide-down">
-          {/* Match Mode Toggle */}
-          <div className="bg-dark-400 border-2 border-dark-300 rounded-lg p-3 sm:p-4">
+      <div className={`space-y-4 transition-all duration-300 ${isExpanded ? 'block' : 'hidden'}`}>
+        {/* Match Mode Toggle */}
+        <div className="bg-dark-400 border-2 border-dark-300 rounded-lg p-3 sm:p-4">
             <label className="block text-xs sm:text-sm font-medium text-gray-400 mb-2 sm:mb-3">
               Match Type
             </label>
@@ -272,8 +271,7 @@ export default function SkillFilter({
               </div>
             </div>
           )}
-        </div>
-      )}
+      </div>
     </div>
   );
 }

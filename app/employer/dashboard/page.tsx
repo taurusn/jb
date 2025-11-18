@@ -790,7 +790,7 @@ export default function EmployerDashboard() {
           </div>
 
           {/* Expandable Filter Content */}
-            <div className={`overflow-hidden transition-all duration-300 ease-in-out ${isFilterExpanded ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'}`}>
+            <div className={`overflow-hidden transition-all duration-300 ease-in-out ${isFilterExpanded ? 'max-h-[1000px] opacity-100' : 'max-h-0 opacity-0'}`}>
               <div className="glass rounded-lg sm:rounded-xl p-3 sm:p-4 lg:p-6 space-y-3 sm:space-y-4">
                 {/* Search */}
                 <div>
@@ -802,34 +802,6 @@ export default function EmployerDashboard() {
                     placeholder="Search by name, city, education..."
                     className="w-full px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base rounded-lg bg-dark-400 border-2 border-dark-300 text-brand-light transition-all focus:outline-none focus:ring-2 focus:ring-brand-yellow focus:border-brand-yellow"
                   />
-                </div>
-
-                {/* Filter Row */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
-                  {/* City */}
-                  <div>
-                    <label className="block text-xs sm:text-sm font-medium text-gray-400 mb-1.5 sm:mb-2">City</label>
-                    <input
-                      type="text"
-                      value={filterCity}
-                      onChange={(e) => setFilterCity(e.target.value)}
-                      placeholder="e.g., New York"
-                      className="w-full px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base rounded-lg bg-dark-400 border-2 border-dark-300 text-brand-light transition-all focus:outline-none focus:ring-2 focus:ring-brand-yellow focus:border-brand-yellow"
-                    />
-                  </div>
-
-                  {/* Education */}
-                  <div>
-                    <label className="block text-xs sm:text-sm font-medium text-gray-400 mb-1.5 sm:mb-2">Education</label>
-                    <input
-                      type="text"
-                      value={filterEducation}
-                      onChange={(e) => setFilterEducation(e.target.value)}
-                      placeholder="e.g., Bachelor's"
-                      className="w-full px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base rounded-lg bg-dark-400 border-2 border-dark-300 text-brand-light transition-all focus:outline-none focus:ring-2 focus:ring-brand-yellow focus:border-brand-yellow"
-                    />
-                  </div>
-
                 </div>
 
                 {/* Multi-Select Skill Filter */}
