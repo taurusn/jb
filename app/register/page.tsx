@@ -5,12 +5,136 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Button, Input, Navbar } from '@/components';
 
+// Translations
+const translations = {
+  ar: {
+    registerAsEmployer: 'التسجيل كصاحب عمل',
+    createAccount: 'أنشئ حسابًا لنشر الوظائف والعثور على أفضل المواهب',
+    companyInfo: 'معلومات الشركة',
+    companyName: 'اسم الشركة',
+    contactPerson: 'الشخص المسؤول',
+    phone: 'رقم الهاتف',
+    industry: 'المجال',
+    selectIndustry: 'اختر المجال',
+    companySize: 'حجم الشركة',
+    selectSize: 'اختر الحجم',
+    companyWebsite: 'موقع الشركة الإلكتروني',
+    optional: 'اختياري',
+    accountInfo: 'معلومات الحساب',
+    email: 'البريد الإلكتروني',
+    password: 'كلمة المرور',
+    confirmPassword: 'تأكيد كلمة المرور',
+    commercialRegistration: 'السجل التجاري',
+    crNumber: 'رقم السجل التجاري',
+    crDocument: 'وثيقة السجل التجاري',
+    uploadDocument: 'رفع الوثيقة',
+    register: 'تسجيل',
+    registering: 'جارٍ التسجيل...',
+    alreadyHaveAccount: 'لديك حساب بالفعل؟',
+    login: 'تسجيل الدخول',
+    registrationsClosed: 'التسجيل مغلق حاليًا',
+    notAcceptingRegistrations: 'لا نقبل تسجيلات أصحاب عمل جدد في الوقت الحالي.',
+    checkBackLater: 'يرجى المحاولة لاحقًا أو التواصل مع الدعم للحصول على مزيد من المعلومات.',
+    loading: 'جارٍ التحميل...',
+    required: 'مطلوب',
+    minCharacters: 'الحد الأدنى 8 أحرف',
+    reEnterPassword: 'أعد إدخال كلمة المرور',
+    passwordRequirements: 'يجب أن تحتوي على: حرف كبير، حرف صغير، رقم، رمز خاص',
+    companyNamePlaceholder: 'شركة الأمثل',
+    contactPersonPlaceholder: 'أحمد محمد',
+    websiteOptional: 'الموقع الإلكتروني (اختياري)',
+    websitePlaceholder: 'https://company.com',
+    crNumberPlaceholder: 'مثال: 1234567890',
+    crDocumentHelper: 'ارفع صورة واضحة أو ملف PDF للسجل التجاري (الحد الأقصى 5 ميجابايت)',
+    uploadingCr: 'جارٍ رفع وثيقة السجل التجاري...',
+    creatingAccount: 'جارٍ إنشاء الحساب...',
+    createEmployerAccount: 'إنشاء حساب صاحب عمل',
+    loginHere: 'سجل دخول من هنا',
+    lookingForJob: 'تبحث عن وظيفة؟',
+    backToApplications: '← العودة إلى طلبات التوظيف',
+    // Industry options
+    restaurant: 'مطعم',
+    cafe: 'مقهى',
+    cafeAndBakery: 'مقهى ومخبز',
+    bakery: 'مخبز',
+    // Company size options
+    employees1_10: '1-10 موظفين',
+    employees11_50: '11-50 موظفًا',
+    employees51_200: '51-200 موظف',
+    employees201_500: '201-500 موظف',
+    employees501_1000: '501-1000 موظف',
+    employees1000plus: '1000+ موظف',
+  },
+  en: {
+    registerAsEmployer: 'Register as Employer',
+    createAccount: 'Create an account to post jobs and find top talent',
+    companyInfo: 'Company Information',
+    companyName: 'Company Name',
+    contactPerson: 'Contact Person',
+    phone: 'Phone Number',
+    industry: 'Industry',
+    selectIndustry: 'Select industry',
+    companySize: 'Company Size',
+    selectSize: 'Select size',
+    companyWebsite: 'Company Website',
+    optional: 'Optional',
+    accountInfo: 'Account Information',
+    email: 'Email',
+    password: 'Password',
+    confirmPassword: 'Confirm Password',
+    commercialRegistration: 'Commercial Registration',
+    crNumber: 'CR Number',
+    crDocument: 'CR Document',
+    uploadDocument: 'Upload Document',
+    register: 'Register',
+    registering: 'Registering...',
+    alreadyHaveAccount: 'Already have an account?',
+    login: 'Login',
+    registrationsClosed: 'Registrations Currently Closed',
+    notAcceptingRegistrations: "We're not accepting new employer registrations at this time.",
+    checkBackLater: 'Please check back later or contact support for more information.',
+    loading: 'Loading...',
+    required: 'Required',
+    minCharacters: 'Min. 8 characters',
+    reEnterPassword: 'Re-enter password',
+    passwordRequirements: 'Must include: uppercase, lowercase, number, special character',
+    companyNamePlaceholder: 'Acme Corporation',
+    contactPersonPlaceholder: 'John Doe',
+    websiteOptional: 'Website (Optional)',
+    websitePlaceholder: 'https://company.com',
+    crNumberPlaceholder: 'e.g., 1234567890',
+    crDocumentHelper: 'Upload a clear image or PDF of your Commercial Registration (Max 5MB)',
+    uploadingCr: 'Uploading CR Document...',
+    creatingAccount: 'Creating Account...',
+    createEmployerAccount: 'Create Employer Account',
+    loginHere: 'Login here',
+    lookingForJob: 'Looking for a job?',
+    backToApplications: '← Back to Job Applications',
+    // Industry options
+    restaurant: 'Restaurant',
+    cafe: 'Cafe',
+    cafeAndBakery: 'Cafe and Bakery',
+    bakery: 'Bakery',
+    // Company size options
+    employees1_10: '1-10 employees',
+    employees11_50: '11-50 employees',
+    employees51_200: '51-200 employees',
+    employees201_500: '201-500 employees',
+    employees501_1000: '501-1000 employees',
+    employees1000plus: '1000+ employees',
+  }
+};
+
 export default function RegisterPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [registrationsAllowed, setRegistrationsAllowed] = useState<boolean | null>(null);
   const [checkingSettings, setCheckingSettings] = useState(true);
+
+  // Language state (default to Arabic)
+  const [language, setLanguage] = useState<'ar' | 'en'>('ar');
+  const t = translations[language];
 
   const [formData, setFormData] = useState({
     email: '',
@@ -223,18 +347,34 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen bg-brand-dark">
+    <div className="min-h-screen bg-brand-dark" dir={language === 'ar' ? 'rtl' : 'ltr'}>
       <Navbar />
+
+      {/* Language Toggle Button - Small, Floating */}
+      <button
+        onClick={() => setLanguage(language === 'ar' ? 'en' : 'ar')}
+        className="fixed top-24 right-4 z-50 flex items-center gap-2 px-3 py-2 bg-brand-yellow/10 hover:bg-brand-yellow/20 border border-brand-yellow/30 rounded-lg text-brand-yellow text-sm font-semibold transition-all duration-300 shadow-lg backdrop-blur-sm"
+        aria-label="Toggle Language"
+      >
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
+        </svg>
+        {language === 'ar' ? 'EN' : 'ع'}
+      </button>
 
       <div className="pt-32 pb-20 px-4">
         <div className="max-w-2xl mx-auto">
           {/* Header */}
           <div className="text-center mb-10 animate-slide-down">
             <h1 className="text-4xl md:text-5xl font-display font-bold text-brand-light mb-4">
-              Register as <span className="text-gradient">Employer</span>
+              {language === 'ar' ? (
+                <>{t.registerAsEmployer}</>
+              ) : (
+                <>Register as <span className="text-gradient">Employer</span></>
+              )}
             </h1>
             <p className="text-gray-400 text-lg">
-              Create an account to post jobs and find top talent
+              {t.createAccount}
             </p>
           </div>
 
@@ -244,7 +384,7 @@ export default function RegisterPage() {
             {checkingSettings ? (
               <div className="text-center py-12">
                 <div className="w-16 h-16 border-4 border-brand-yellow border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-                <p className="text-brand-light text-lg">Loading...</p>
+                <p className="text-brand-light text-lg">{t.loading}</p>
               </div>
             ) : registrationsAllowed === false ? (
               /* Registrations closed message */
@@ -265,17 +405,17 @@ export default function RegisterPage() {
                   </svg>
                 </div>
                 <h2 className="text-2xl sm:text-3xl lg:text-4xl font-display font-bold text-brand-light mb-4">
-                  Registrations Currently Closed
+                  {t.registrationsClosed}
                 </h2>
                 <p className="text-lg text-gray-300 mb-6">
-                  We're not accepting new employer registrations at this time.
+                  {t.notAcceptingRegistrations}
                 </p>
                 <p className="text-gray-400 mb-6">
-                  Please check back later or contact support for more information.
+                  {t.checkBackLater}
                 </p>
                 <Link href="/login">
                   <Button variant="outline" size="md">
-                    Already have an account? Login
+                    {t.alreadyHaveAccount} {t.login}
                   </Button>
                 </Link>
               </div>
@@ -331,17 +471,17 @@ export default function RegisterPage() {
                   <span className="w-8 h-8 bg-brand-yellow rounded-full flex items-center justify-center text-brand-dark text-sm font-bold">
                     1
                   </span>
-                  Account Information
+                  {t.accountInfo}
                 </h3>
 
                 <div>
                   <Input
-                    label="Email Address"
+                    label={t.email}
                     type="email"
                     name="email"
                     value={formData.email}
                     onChange={handleChange}
-                    placeholder="company@example.com"
+                    placeholder={language === 'ar' ? 'company@example.com' : 'company@example.com'}
                     required
                     fullWidth
                     disabled={loading}
@@ -364,12 +504,12 @@ export default function RegisterPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <Input
-                      label="Password"
+                      label={t.password}
                       type="password"
                       name="password"
                       value={formData.password}
                       onChange={handleChange}
-                      placeholder="Min. 8 characters"
+                      placeholder={t.minCharacters}
                       required
                       fullWidth
                       disabled={loading}
@@ -388,18 +528,18 @@ export default function RegisterPage() {
                       <p className="mt-1 text-xs text-accent-red">{fieldErrors.password}</p>
                     )}
                     <p className="mt-1 text-xs text-gray-500">
-                      Must include: uppercase, lowercase, number, special character
+                      {t.passwordRequirements}
                     </p>
                   </div>
 
                   <div>
                     <Input
-                      label="Confirm Password"
+                      label={t.confirmPassword}
                       type="password"
                       name="confirmPassword"
                       value={formData.confirmPassword}
                       onChange={handleChange}
-                      placeholder="Re-enter password"
+                      placeholder={t.reEnterPassword}
                       required
                       fullWidth
                       disabled={loading}
@@ -427,17 +567,17 @@ export default function RegisterPage() {
                   <span className="w-8 h-8 bg-brand-yellow rounded-full flex items-center justify-center text-brand-dark text-sm font-bold">
                     2
                   </span>
-                  Company Information
+                  {t.companyInfo}
                 </h3>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <Input
-                    label="Company Name"
+                    label={t.companyName}
                     type="text"
                     name="companyName"
                     value={formData.companyName}
                     onChange={handleChange}
-                    placeholder="Acme Corporation"
+                    placeholder={t.companyNamePlaceholder}
                     required
                     fullWidth
                     disabled={loading}
@@ -454,12 +594,12 @@ export default function RegisterPage() {
                   />
 
                   <Input
-                    label="Contact Person"
+                    label={t.contactPerson}
                     type="text"
                     name="contactPerson"
                     value={formData.contactPerson}
                     onChange={handleChange}
-                    placeholder="John Doe"
+                    placeholder={t.contactPersonPlaceholder}
                     required
                     fullWidth
                     disabled={loading}
@@ -478,7 +618,7 @@ export default function RegisterPage() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <Input
-                    label="Phone Number"
+                    label={t.phone}
                     type="tel"
                     name="phone"
                     value={formData.phone}
@@ -501,7 +641,7 @@ export default function RegisterPage() {
 
                   <div>
                     <label className="block text-sm font-semibold text-brand-light mb-2">
-                      Industry <span className="text-brand-yellow">*</span>
+                      {t.industry} <span className="text-brand-yellow">*</span>
                     </label>
                     <select
                       name="industry"
@@ -511,11 +651,11 @@ export default function RegisterPage() {
                       disabled={loading}
                       className="w-full px-4 py-3 rounded-lg bg-dark-400 border-2 border-dark-300 text-brand-light font-medium transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-brand-yellow focus:border-brand-yellow hover:border-brand-yellow/50 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      <option value="">Select industry</option>
-                      <option value="Restaurant">Restaurant</option>
-                      <option value="Cafe">Cafe</option>
-                      <option value="Cafe and Bakery">Cafe and Bakery</option>
-                      <option value="Bakery">Bakery</option>
+                      <option value="">{t.selectIndustry}</option>
+                      <option value="Restaurant">{t.restaurant}</option>
+                      <option value="Cafe">{t.cafe}</option>
+                      <option value="Cafe and Bakery">{t.cafeAndBakery}</option>
+                      <option value="Bakery">{t.bakery}</option>
                     </select>
                   </div>
                 </div>
@@ -523,7 +663,7 @@ export default function RegisterPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-semibold text-brand-light mb-2">
-                      Company Size <span className="text-brand-yellow">*</span>
+                      {t.companySize} <span className="text-brand-yellow">*</span>
                     </label>
                     <select
                       name="companySize"
@@ -533,23 +673,23 @@ export default function RegisterPage() {
                       disabled={loading}
                       className="w-full px-4 py-3 rounded-lg bg-dark-400 border-2 border-dark-300 text-brand-light font-medium transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-brand-yellow focus:border-brand-yellow hover:border-brand-yellow/50 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      <option value="">Select size</option>
-                      <option value="1-10">1-10 employees</option>
-                      <option value="11-50">11-50 employees</option>
-                      <option value="51-200">51-200 employees</option>
-                      <option value="201-500">201-500 employees</option>
-                      <option value="501-1000">501-1000 employees</option>
-                      <option value="1000+">1000+ employees</option>
+                      <option value="">{t.selectSize}</option>
+                      <option value="1-10">{t.employees1_10}</option>
+                      <option value="11-50">{t.employees11_50}</option>
+                      <option value="51-200">{t.employees51_200}</option>
+                      <option value="201-500">{t.employees201_500}</option>
+                      <option value="501-1000">{t.employees501_1000}</option>
+                      <option value="1000+">{t.employees1000plus}</option>
                     </select>
                   </div>
 
                   <Input
-                    label="Website (Optional)"
+                    label={t.websiteOptional}
                     type="url"
                     name="companyWebsite"
                     value={formData.companyWebsite}
                     onChange={handleChange}
-                    placeholder="https://company.com"
+                    placeholder={t.websitePlaceholder}
                     fullWidth
                     disabled={loading}
                     icon={
@@ -568,17 +708,17 @@ export default function RegisterPage() {
                 {/* Commercial Registration Section */}
                 <div className="border-t-2 border-dark-300 pt-6">
                   <h3 className="text-lg font-display font-bold text-brand-yellow mb-4">
-                    Commercial Registration
+                    {t.commercialRegistration}
                   </h3>
 
                   <div className="space-y-4">
                     <Input
-                      label="Commercial Registration Number"
+                      label={t.crNumber}
                       type="text"
                       name="commercialRegistrationNumber"
                       value={formData.commercialRegistrationNumber}
                       onChange={handleChange}
-                      placeholder="e.g., 1234567890"
+                      placeholder={t.crNumberPlaceholder}
                       fullWidth
                       required
                       disabled={loading}
@@ -592,10 +732,10 @@ export default function RegisterPage() {
 
                     <div>
                       <label className="block text-sm font-semibold text-brand-light mb-2">
-                        Commercial Registration Document <span className="text-brand-yellow">*</span>
+                        {t.crDocument} <span className="text-brand-yellow">*</span>
                       </label>
                       <p className="text-xs text-gray-400 mb-2">
-                        Upload a clear image or PDF of your Commercial Registration (Max 5MB)
+                        {t.crDocumentHelper}
                       </p>
                       <input
                         type="file"
@@ -637,16 +777,16 @@ export default function RegisterPage() {
                   disabled={loading || uploadingCr}
                   loading={loading || uploadingCr}
                 >
-                  {uploadingCr ? 'Uploading CR Document...' : loading ? 'Creating Account...' : 'Create Employer Account'}
+                  {uploadingCr ? t.uploadingCr : loading ? t.creatingAccount : t.createEmployerAccount}
                 </Button>
               </div>
 
               {/* Login Link */}
               <div className="text-center pt-4">
                 <p className="text-gray-400 text-sm">
-                  Already have an account?{' '}
+                  {t.alreadyHaveAccount}{' '}
                   <Link href="/login" className="text-brand-yellow hover:text-brand-yellow/80 font-semibold transition-colors">
-                    Login here
+                    {t.loginHere}
                   </Link>
                 </p>
               </div>
@@ -657,10 +797,10 @@ export default function RegisterPage() {
 
           {/* Employee Link */}
           <div className="mt-8 text-center animate-fade-in">
-            <p className="text-gray-400 mb-4">Looking for a job?</p>
+            <p className="text-gray-400 mb-4">{t.lookingForJob}</p>
             <Link href="/">
               <Button variant="outline" size="md">
-                ← Back to Job Applications
+                {t.backToApplications}
               </Button>
             </Link>
           </div>
