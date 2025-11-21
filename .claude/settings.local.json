@@ -5,7 +5,11 @@
       "Bash(npx prisma migrate:*)",
       "Bash(cat:*)",
       "Bash(/dev/null)",
-      "Bash(ssh-add:*)"
+      "Bash(ssh-add:*)",
+      "Bash(npx prisma generate:*)",
+      "Bash(git checkout:*)",
+      "Bash(git pull:*)",
+      "Bash(git add:*)"
     ],
     "deny": [],
     "ask": []

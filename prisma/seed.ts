@@ -16,6 +16,9 @@ async function main() {
       email: 'employer@test.com',
       passwordHash,
       role: 'EMPLOYER',
+      commercialRegistrationNumber: '1234567890',
+      commercialRegistrationImageUrl: '/uploads/cr-test-1.pdf',
+      status: 'APPROVED', // Pre-approved test account
       employerProfile: {
         create: {
           companyName: 'Tech Solutions Inc.',
@@ -34,6 +37,9 @@ async function main() {
     where: { email: 'hr@company.com' },
     update: {},
     create: {
+      commercialRegistrationNumber: '0987654321',
+      commercialRegistrationImageUrl: '/uploads/cr-test-2.pdf',
+      status: 'APPROVED', // Pre-approved test account
       email: 'hr@company.com',
       passwordHash,
       role: 'EMPLOYER',
@@ -67,6 +73,9 @@ async function main() {
       email: 'admin@jobplatform.com',
       passwordHash: adminPasswordHash,
       role: 'ADMIN',
+      commercialRegistrationNumber: 'ADMIN-N/A',
+      commercialRegistrationImageUrl: '/admin-placeholder',
+      status: 'APPROVED', // Admins are always approved
     },
   });
 
@@ -98,10 +107,13 @@ async function main() {
       email: 'ahmed@example.com',
       phone: '0501111111',
       city: 'Riyadh',
-      education: "Bachelor's in Computer Science",
-      skills: 'JavaScript, React, Node.js, TypeScript, SQL, Git',
-      experience: 'Software Developer with 3 years of experience building web applications. Worked on multiple full-stack projects including e-commerce platforms and internal business tools.',
+      nationality: 'Saudi Arabian',
+      skills: 'Chef / Cook, Kitchen Assistant',
+      experience: 'Professional chef with 3 years of experience in fine dining restaurants. Specialized in Mediterranean and Middle Eastern cuisine.',
       resumeUrl: '/uploads/sample-resume.pdf',
+      iqamaNumber: '1234567890',
+      iqamaExpiryDate: new Date('2026-12-31'),
+      kafeelNumber: 'KFL123456',
     },
   });
 
@@ -111,10 +123,13 @@ async function main() {
       email: 'fatima@example.com',
       phone: '0502222222',
       city: 'Jeddah',
-      education: "Master's in Data Science",
-      skills: 'Python, Machine Learning, TensorFlow, Data Analysis, SQL, Tableau',
-      experience: '5 years as a Data Scientist specializing in predictive analytics and business intelligence. Led multiple ML projects that improved operational efficiency by 40%.',
+      nationality: 'Egyptian',
+      skills: 'Waiter / Customer Service, Cashier',
+      experience: '5 years of customer service experience in high-end restaurants. Excellent communication skills and fluent in Arabic and English.',
       resumeUrl: '/uploads/sample-resume-2.pdf',
+      iqamaNumber: '2345678901',
+      iqamaExpiryDate: new Date('2027-06-30'),
+      kafeelNumber: 'KFL234567',
     },
   });
 
@@ -124,10 +139,13 @@ async function main() {
       email: 'mohammed@example.com',
       phone: '0503333333',
       city: 'Dammam',
-      education: "Bachelor's in Information Technology",
-      skills: 'Java, Spring Boot, Microservices, Docker, Kubernetes, AWS',
-      experience: 'Backend Engineer with 4 years experience designing and implementing scalable microservices architectures. Strong focus on cloud-native applications.',
+      nationality: 'Jordanian',
+      skills: 'Restaurant Supervisor / Manager, Waiter / Customer Service',
+      experience: '4 years of restaurant management experience. Skilled in staff training, inventory management, and customer satisfaction.',
       resumeUrl: '/uploads/sample-resume-3.pdf',
+      iqamaNumber: '3456789012',
+      iqamaExpiryDate: new Date('2025-12-31'),
+      kafeelNumber: 'KFL345678',
     },
   });
 

@@ -20,12 +20,15 @@ export async function createEmployeeApplication(
         phone: data.phone,
         email: data.email || null,
         city: data.city,
-        education: data.education,
+        nationality: data.nationality,
         skills: data.skills,
         experience: data.experience,
-        resumeUrl: data.resumeUrl || null,
+        resumeUrl: data.resumeUrl,
         profilePictureUrl: data.profilePictureUrl || null,
         availableTimeSlots: data.availableTimeSlots || null,
+        iqamaNumber: data.iqamaNumber,
+        iqamaExpiryDate: data.iqamaExpiryDate,
+        kafeelNumber: data.kafeelNumber,
       },
     });
 
@@ -78,8 +81,8 @@ export async function getEmployeeApplications(
       where.city = { contains: filters.city, mode: 'insensitive' };
     }
 
-    if (filters.education) {
-      where.education = { contains: filters.education, mode: 'insensitive' };
+    if (filters.nationality) {
+      where.nationality = { contains: filters.nationality, mode: 'insensitive' };
     }
 
     if (filters.experience) {
@@ -91,7 +94,7 @@ export async function getEmployeeApplications(
       where.OR = [
         { fullName: { contains: filters.search, mode: 'insensitive' } },
         { city: { contains: filters.search, mode: 'insensitive' } },
-        { education: { contains: filters.search, mode: 'insensitive' } },
+        { nationality: { contains: filters.search, mode: 'insensitive' } },
         { skills: { contains: filters.search, mode: 'insensitive' } },
         { experience: { contains: filters.search, mode: 'insensitive' } },
       ];
@@ -205,8 +208,8 @@ export async function getUnrequestedEmployeeApplications(
       where.city = { contains: filters.city, mode: 'insensitive' };
     }
 
-    if (filters.education) {
-      where.education = { contains: filters.education, mode: 'insensitive' };
+    if (filters.nationality) {
+      where.nationality = { contains: filters.nationality, mode: 'insensitive' };
     }
 
     if (filters.experience) {
@@ -218,7 +221,7 @@ export async function getUnrequestedEmployeeApplications(
       where.OR = [
         { fullName: { contains: filters.search, mode: 'insensitive' } },
         { city: { contains: filters.search, mode: 'insensitive' } },
-        { education: { contains: filters.search, mode: 'insensitive' } },
+        { nationality: { contains: filters.search, mode: 'insensitive' } },
         { skills: { contains: filters.search, mode: 'insensitive' } },
         { experience: { contains: filters.search, mode: 'insensitive' } },
       ];
@@ -303,8 +306,8 @@ export async function getRequestedEmployeeApplications(
       applicationWhere.city = { contains: filters.city, mode: 'insensitive' };
     }
 
-    if (filters.education) {
-      applicationWhere.education = { contains: filters.education, mode: 'insensitive' };
+    if (filters.nationality) {
+      applicationWhere.nationality = { contains: filters.nationality, mode: 'insensitive' };
     }
 
     if (filters.experience) {
@@ -316,7 +319,7 @@ export async function getRequestedEmployeeApplications(
       applicationWhere.OR = [
         { fullName: { contains: filters.search, mode: 'insensitive' } },
         { city: { contains: filters.search, mode: 'insensitive' } },
-        { education: { contains: filters.search, mode: 'insensitive' } },
+        { nationality: { contains: filters.search, mode: 'insensitive' } },
         { skills: { contains: filters.search, mode: 'insensitive' } },
         { experience: { contains: filters.search, mode: 'insensitive' } },
       ];

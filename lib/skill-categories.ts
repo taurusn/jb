@@ -120,3 +120,31 @@ export function getCategoryDisplayName(category: SkillCategory): string {
   };
   return names[category];
 }
+
+/**
+ * Skill translations (English → Arabic)
+ */
+const SKILL_TRANSLATIONS: Record<string, string> = {
+  'Barista / Coffee Maker': 'باريستا / صانع قهوة',
+  'Chef / Cook': 'طاهٍ / طباخ',
+  'Kitchen Assistant': 'مساعد مطبخ',
+  'Baker / Pastry': 'خباز / حلويات',
+  'Waiter / Customer Service': 'نادل / خدمة عملاء',
+  'Cashier': 'أمين صندوق',
+  'Cleaner / Steward': 'عامل نظافة / مضيف',
+  'Restaurant Supervisor / Manager': 'مشرف / مدير مطعم',
+};
+
+/**
+ * Translate a skill from English to Arabic
+ */
+export function translateSkill(skill: string): string {
+  return SKILL_TRANSLATIONS[skill] || skill;
+}
+
+/**
+ * Translate multiple skills from English to Arabic
+ */
+export function translateSkills(skills: string[]): string[] {
+  return skills.map(translateSkill);
+}

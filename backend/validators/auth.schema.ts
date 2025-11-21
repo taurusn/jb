@@ -58,6 +58,14 @@ export const registerSchema = z.object({
   companySize: z
     .string()
     .min(1, 'Company size is required'),
+  commercialRegistrationNumber: z
+    .string()
+    .min(7, 'Commercial Registration Number must be at least 7 characters')
+    .max(20, 'Commercial Registration Number is too long')
+    .regex(/^[0-9]+$/, 'CR Number must contain only digits'),
+  commercialRegistrationImageUrl: z
+    .string()
+    .min(1, 'Commercial Registration document is required'),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords don't match",
   path: ['confirmPassword'],

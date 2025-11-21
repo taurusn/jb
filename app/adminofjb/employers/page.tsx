@@ -15,12 +15,49 @@ interface Employer {
   user: {
     id: string;
     email: string;
+    status: 'PENDING' | 'APPROVED' | 'REJECTED';
+    commercialRegistrationNumber: string;
+    commercialRegistrationImageUrl: string;
     createdAt: string;
   };
   _count: {
     employeeRequests: number;
   };
 }
+
+// Status Badge Component
+const StatusBadge = ({ status }: { status: 'PENDING' | 'APPROVED' | 'REJECTED' }) => {
+  const styles = {
+    PENDING: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
+    APPROVED: 'bg-green-500/20 text-green-400 border-green-500/30',
+    REJECTED: 'bg-red-500/20 text-red-400 border-red-500/30',
+  };
+
+  const icons = {
+    PENDING: (
+      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+    ),
+    APPROVED: (
+      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+      </svg>
+    ),
+    REJECTED: (
+      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+      </svg>
+    ),
+  };
+
+  return (
+    <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border-2 ${styles[status]}`}>
+      {icons[status]}
+      {status}
+    </span>
+  );
+};
 
 export default function EmployersPage() {
   const router = useRouter();
@@ -250,9 +287,12 @@ export default function EmployersPage() {
                   </svg>
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h3 className="text-lg font-display font-bold text-brand-light truncate">
-                    {employer.companyName}
-                  </h3>
+                  <div className="flex items-center gap-2 mb-1">
+                    <h3 className="text-lg font-display font-bold text-brand-light truncate">
+                      {employer.companyName}
+                    </h3>
+                    <StatusBadge status={employer.user.status} />
+                  </div>
                   <p className="text-sm text-gray-400 truncate">{employer.contactPerson}</p>
                 </div>
               </div>

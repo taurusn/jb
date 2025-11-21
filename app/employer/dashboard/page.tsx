@@ -7,7 +7,7 @@ import { useLogout } from '@/features/auth/useAuth';
 import type { TabItem } from '@/components';
 import InterviewScheduler from '@/components/interview/InterviewScheduler';
 import SkillFilter from '@/components/employer/SkillFilter';
-import { getSkillCategoryInfo } from '@/lib/skill-categories';
+import { getSkillCategoryInfo, translateSkill } from '@/lib/skill-categories';
 
 export default function EmployerDashboard() {
   const { logout } = useLogout();
@@ -227,8 +227,8 @@ export default function EmployerDashboard() {
             <svg className="w-12 h-12 sm:w-16 sm:h-16 text-gray-600 mx-auto mb-3 sm:mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
             </svg>
-            <p className="text-gray-400 text-base sm:text-lg mb-1 sm:mb-2">No applicants found</p>
-            <p className="text-gray-500 text-xs sm:text-sm">Try adjusting your filters or check back later</p>
+            <p className="text-gray-400 text-base sm:text-lg mb-1 sm:mb-2">لا يوجد متقدمون</p>
+            <p className="text-gray-500 text-xs sm:text-sm">جرب تعديل الفلاتر أو تحقق مرة أخرى لاحقًا</p>
           </div>
         ) : (
           <div className={viewMode === 'grid' ? 'grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4' : 'space-y-3 sm:space-y-4'}>
@@ -296,13 +296,13 @@ export default function EmployerDashboard() {
                             <svg className="w-4 h-4 text-brand-yellow flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                             </svg>
-                            <span className="text-xs sm:text-sm font-medium text-gray-400">Skills ({skillsArray.length}):</span>
+                            <span className="text-xs sm:text-sm font-medium text-gray-400">المهارات ({skillsArray.length}):</span>
                             {selectedSkillsArray.length > 0 && (
                               <span className="text-xs text-brand-yellow/70 flex items-center gap-1">
                                 <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                                   <path fillRule="evenodd" d="M12.395 2.553a1 1 0 00-1.45-.385c-.345.23-.614.558-.822.88-.214.33-.403.713-.57 1.116-.334.804-.614 1.768-.84 2.734a31.365 31.365 0 00-.613 3.58 2.64 2.64 0 01-.945-1.067c-.328-.68-.398-1.534-.398-2.654A1 1 0 005.05 6.05 6.981 6.981 0 003 11a7 7 0 1011.95-4.95c-.592-.591-.98-.985-1.348-1.467-.363-.476-.724-1.063-1.207-2.03zM12.12 15.12A3 3 0 017 13s.879.5 2.5.5c0-1 .5-4 1.25-4.5.5 1 .786 1.293 1.371 1.879A2.99 2.99 0 0113 13a2.99 2.99 0 01-.879 2.121z" clipRule="evenodd" />
                                 </svg>
-                                Matches
+                                متطابقة
                               </span>
                             )}
                           </div>
@@ -326,7 +326,7 @@ export default function EmployerDashboard() {
                                       : `${categoryInfo.color.bg} ${categoryInfo.color.text} border ${categoryInfo.color.border} hover:shadow-md ${categoryInfo.color.glow}`
                                     }
                                   `}
-                                  title={`${skill} (${categoryInfo.category})`}
+                                  title={`${translateSkill(skill)} (${categoryInfo.category})`}
                                 >
                                   {isMatched && (
                                     <span className="absolute -top-1 -right-1 flex h-3 w-3">
@@ -334,7 +334,7 @@ export default function EmployerDashboard() {
                                       <span className="relative inline-flex rounded-full h-3 w-3 bg-brand-yellow"></span>
                                     </span>
                                   )}
-                                  {skill}
+                                  {translateSkill(skill)}
                                 </span>
                               );
                             })}
@@ -349,7 +349,7 @@ export default function EmployerDashboard() {
                             <svg className="w-4 h-4 text-brand-yellow flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                             </svg>
-                            <span className="text-xs sm:text-sm font-medium text-gray-400">Experience:</span>
+                            <span className="text-xs sm:text-sm font-medium text-gray-400">الخبرة:</span>
                           </div>
                           <p className="text-sm text-gray-300 line-clamp-2">
                             {applicant.experience.length > 120
@@ -428,7 +428,7 @@ export default function EmployerDashboard() {
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
                             <div className="flex-1">
-                              <span className="text-xs sm:text-sm text-gray-400">Available: </span>
+                              <span className="text-xs sm:text-sm text-gray-400">التوفر: </span>
                               <span className="text-xs sm:text-sm text-gray-300 font-medium">{formattedSlots}</span>
                             </div>
                           </div>
@@ -442,7 +442,7 @@ export default function EmployerDashboard() {
                             <svg className="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
-                            <span className="text-xs sm:text-sm text-gray-400">Available:</span>
+                            <span className="text-xs sm:text-sm text-gray-400">التوفر:</span>
                             <span className="text-xs sm:text-sm text-gray-300 font-medium">{(applicant as any).availableTimeSlots}</span>
                           </div>
                         </div>
@@ -463,8 +463,8 @@ export default function EmployerDashboard() {
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                           </svg>
-                          <span className="hidden sm:inline">View Resume</span>
-                          <span className="sm:hidden">View CV</span>
+                          <span className="hidden sm:inline">عرض السيرة الذاتية</span>
+                          <span className="sm:hidden">CV</span>
                         </Button>
                       </a>
                     ) : (
@@ -505,8 +505,8 @@ export default function EmployerDashboard() {
                               <svg className="w-4 h-4 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                               </svg>
-                              <span className="hidden sm:inline">Request Candidate</span>
-                              <span className="sm:hidden">Request</span>
+                              <span className="hidden sm:inline">طلب المرشح</span>
+                              <span className="sm:hidden">طلب</span>
                             </>
                           )}
                         </Button>
@@ -531,7 +531,7 @@ export default function EmployerDashboard() {
                                 <svg className="w-4 h-4 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                                 </svg>
-                                <span className="hidden sm:inline">Approve</span>
+                                <span className="hidden sm:inline">موافقة</span>
                                 <span className="sm:hidden">✓</span>
                               </>
                             )}
@@ -546,7 +546,7 @@ export default function EmployerDashboard() {
                             <svg className="w-4 h-4 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                             </svg>
-                            <span className="hidden sm:inline">Reject</span>
+                            <span className="hidden sm:inline">رفض</span>
                             <span className="sm:hidden">✗</span>
                           </Button>
                         </div>
@@ -565,7 +565,7 @@ export default function EmployerDashboard() {
                             )}
                           </svg>
                           <span className="text-xs sm:text-sm font-medium">
-                            {applicant.requestStatus === 'APPROVED' ? 'Approved' : 'Rejected'}
+                            {applicant.requestStatus === 'APPROVED' ? 'موافق عليه' : 'مرفوض'}
                           </span>
                         </div>
                       )
@@ -628,7 +628,7 @@ export default function EmployerDashboard() {
   const tabItems: TabItem[] = [
     {
       key: 'unrequested',
-      label: 'Available Candidates',
+      label: 'المرشحون المتاحون',
       icon: (
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
@@ -647,7 +647,7 @@ export default function EmployerDashboard() {
     },
     {
       key: 'requested',
-      label: 'Requested Candidates',
+      label: 'المرشحون المطلوبون',
       icon: (
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -668,17 +668,17 @@ export default function EmployerDashboard() {
 
   return (
     <AuthGuard>
-      <div className="min-h-screen bg-brand-dark">
+      <div className="min-h-screen bg-brand-dark font-arabic" dir="rtl">
         <Navbar isAuthenticated onLogout={logout} />
 
         <div className="max-w-7xl mx-auto px-3 sm:px-4 py-4 sm:py-6 pt-16 sm:pt-20">
           {/* Header */}
           <div className="mb-4 sm:mb-6 animate-slide-down">
             <h1 className="text-xl sm:text-2xl lg:text-3xl font-display font-bold text-brand-light mb-1 sm:mb-2">
-              Employer Dashboard
+              لوحة التحكم
             </h1>
             <p className="text-xs sm:text-sm lg:text-base text-gray-400">
-              Manage applications and find the perfect candidates for your team
+              إدارة الطلبات والعثور على المرشحين المثاليين لفريقك
             </p>
           </div>
 
@@ -696,7 +696,7 @@ export default function EmployerDashboard() {
               <>
                 <div className="glass rounded-lg sm:rounded-xl p-3 sm:p-4 lg:p-6 hover:scale-105 transition-transform duration-300 animate-scale-in">
                   <div className="flex items-center justify-between mb-1 sm:mb-2">
-                    <span className="text-gray-400 text-xs sm:text-sm font-medium">Pending</span>
+                    <span className="text-gray-400 text-xs sm:text-sm font-medium">قيد الانتظار</span>
                     <svg className="w-4 h-4 sm:w-5 sm:h-5 text-accent-orange flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
@@ -706,7 +706,7 @@ export default function EmployerDashboard() {
 
                 <div className="glass rounded-lg sm:rounded-xl p-3 sm:p-4 lg:p-6 hover:scale-105 transition-transform duration-300 animate-scale-in" style={{ animationDelay: '50ms' }}>
                   <div className="flex items-center justify-between mb-1 sm:mb-2">
-                    <span className="text-gray-400 text-xs sm:text-sm font-medium">Approved</span>
+                    <span className="text-gray-400 text-xs sm:text-sm font-medium">موافق عليه</span>
                     <svg className="w-4 h-4 sm:w-5 sm:h-5 text-accent-green flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
@@ -716,7 +716,7 @@ export default function EmployerDashboard() {
 
                 <div className="glass rounded-lg sm:rounded-xl p-3 sm:p-4 lg:p-6 hover:scale-105 transition-transform duration-300 animate-scale-in" style={{ animationDelay: '100ms' }}>
                   <div className="flex items-center justify-between mb-1 sm:mb-2">
-                    <span className="text-gray-400 text-xs sm:text-sm font-medium">Rejected</span>
+                    <span className="text-gray-400 text-xs sm:text-sm font-medium">مرفوض</span>
                     <svg className="w-4 h-4 sm:w-5 sm:h-5 text-accent-red flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
@@ -740,11 +740,11 @@ export default function EmployerDashboard() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
                   </svg>
                   <h2 className="text-base sm:text-lg lg:text-xl font-semibold text-brand-light">
-                    Filter Applicants
+                    تصفية المتقدمين
                   </h2>
                   {(filterSearch || filterCity || filterEducation || filterSkills || selectedSkillsArray.length > 0) && (
                     <span className="bg-brand-yellow text-brand-dark text-xs font-bold px-2 py-0.5 rounded-full">
-                      Active
+                      نشط
                     </span>
                   )}
                 </div>
@@ -772,7 +772,7 @@ export default function EmployerDashboard() {
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
               </svg>
-              <span className="hidden sm:inline">List View</span>
+              <span className="hidden sm:inline">عرض قائمة</span>
             </button>
             <button
               onClick={() => handleViewModeChange('grid')}
@@ -785,7 +785,7 @@ export default function EmployerDashboard() {
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM14 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1v-4zM14 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z" />
               </svg>
-              <span className="hidden sm:inline">Grid View</span>
+              <span className="hidden sm:inline">عرض شبكي</span>
             </button>
           </div>
 
@@ -794,12 +794,12 @@ export default function EmployerDashboard() {
               <div className="glass rounded-lg sm:rounded-xl p-3 sm:p-4 lg:p-6 space-y-3 sm:space-y-4">
                 {/* Search */}
                 <div>
-                  <label className="block text-xs sm:text-sm font-medium text-gray-400 mb-1.5 sm:mb-2">Search</label>
+                  <label className="block text-xs sm:text-sm font-medium text-gray-400 mb-1.5 sm:mb-2">بحث</label>
                   <input
                     type="text"
                     value={filterSearch}
                     onChange={(e) => setFilterSearch(e.target.value)}
-                    placeholder="Search by name, city, education..."
+                    placeholder="البحث بالاسم، المدينة، التعليم..."
                     className="w-full px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base rounded-lg bg-dark-400 border-2 border-dark-300 text-brand-light transition-all focus:outline-none focus:ring-2 focus:ring-brand-yellow focus:border-brand-yellow"
                   />
                 </div>
@@ -815,11 +815,11 @@ export default function EmployerDashboard() {
                 {/* Action Buttons */}
                 <div className="flex gap-2 sm:gap-3">
                   <Button variant="primary" size="sm" onClick={handleFilter} className="flex-1">
-                    <span className="hidden sm:inline">Apply Filters</span>
-                    <span className="sm:hidden">Apply</span>
+                    <span className="hidden sm:inline">تطبيق الفلاتر</span>
+                    <span className="sm:hidden">تطبيق</span>
                   </Button>
                   <Button variant="outline" size="sm" onClick={handleClearFilters} className="px-3 sm:px-4">
-                    <span className="hidden sm:inline">Clear</span>
+                    <span className="hidden sm:inline">مسح</span>
                     <span className="sm:hidden">✕</span>
                   </Button>
                 </div>

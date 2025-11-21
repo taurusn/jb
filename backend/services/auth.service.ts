@@ -39,6 +39,9 @@ export async function registerEmployer(data: RegisterData): Promise<AuthResponse
         email: data.email,
         passwordHash,
         role: 'EMPLOYER',
+        commercialRegistrationNumber: data.commercialRegistrationNumber,
+        commercialRegistrationImageUrl: data.commercialRegistrationImageUrl,
+        status: 'PENDING', // Requires admin approval
         employerProfile: {
           create: {
             companyName: data.companyName,
@@ -55,22 +58,12 @@ export async function registerEmployer(data: RegisterData): Promise<AuthResponse
       },
     });
 
-    // Generate JWT token
-    const token = generateToken({
-      userId: user.id,
-      email: user.email,
-      role: user.role,
-    });
+    // Don't generate token - account is PENDING approval
+    // User will need to wait for admin approval before logging in
 
     return {
       success: true,
-      token,
-      user: {
-        id: user.id,
-        email: user.email,
-        role: user.role,
-      },
-      message: 'Registration successful',
+      message: 'Registration successful! Your account is pending approval. We will review your application and contact you once approved.',
     };
   } catch (error) {
     console.error('Register error:', error);
@@ -111,7 +104,23 @@ export async function loginEmployer(credentials: LoginCredentials): Promise<Auth
       };
     }
 
-    // Generate JWT token
+    // Check account status (only for employers)
+    if (user.role === 'EMPLOYER') {
+      if (user.status === 'PENDING') {
+        return {
+          success: false,
+          error: 'Your account is pending approval. Please wait for admin review.',
+        };
+      }
+      if (user.status === 'REJECTED') {
+        return {
+          success: false,
+          error: 'Your account application has been rejected. Please contact support for more information.',
+        };
+      }
+    }
+
+    // Generate JWT token (only for APPROVED users or ADMIN)
     const token = generateToken({
       userId: user.id,
       email: user.email,

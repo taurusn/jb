@@ -2,6 +2,7 @@
 // ENUMS (matching Prisma schema)
 // ============================================
 export type Role = 'EMPLOYER' | 'ADMIN';
+export type EmployerStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
 export type EmployeeRequestStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
 
 // ============================================
@@ -27,6 +28,8 @@ export interface RegisterData {
   phone: string;
   industry: string;
   companySize: string;
+  commercialRegistrationNumber: string;
+  commercialRegistrationImageUrl: string;
 }
 
 export interface AuthResponse {
@@ -79,12 +82,15 @@ export interface EmployeeApplicationData {
   phone: string;
   email?: string | null;
   city: string;
-  education: string;
+  nationality: string;
   skills: string;
   experience: string;
-  resumeUrl?: string | null;
+  resumeUrl: string;
   profilePictureUrl?: string | null;
   availableTimeSlots?: string | null; // JSON string of TimeSlot[]
+  iqamaNumber: string;
+  iqamaExpiryDate: Date;
+  kafeelNumber: string;
 }
 
 export interface EmployeeApplicationResponse extends EmployeeApplicationData {
@@ -152,7 +158,7 @@ export type ApiResponse<T> = ApiSuccess<T> | ApiError;
 // ============================================
 export interface EmployeeFilters {
   city?: string;
-  education?: string;
+  nationality?: string;
   skills?: string[];
   experience?: string;
   search?: string; // General search across multiple fields

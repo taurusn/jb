@@ -143,8 +143,8 @@ export async function getDashboardStats() {
     // Top cities
     const topCities = await getTopCities();
 
-    // Candidates by education
-    const candidatesByEducation = await getCandidatesByEducation();
+    // Candidates by nationality
+    const candidatesByNationality = await getCandidatesByNationality();
 
     // Skills analytics
     const skillsDistribution = await getSkillsDistribution();
@@ -168,7 +168,7 @@ export async function getDashboardStats() {
         REJECTED: rejectedRequests,
       },
       topCities,
-      candidatesByEducation,
+      candidatesByNationality,
       skillsDistribution,
       topSkills,
     };
@@ -223,22 +223,22 @@ async function getTopCities() {
   }));
 }
 
-async function getCandidatesByEducation() {
+async function getCandidatesByNationality() {
   const candidates = await db.employeeApplication.groupBy({
-    by: ['education'],
+    by: ['nationality'],
     _count: {
-      education: true,
+      nationality: true,
     },
     orderBy: {
       _count: {
-        education: 'desc',
+        nationality: 'desc',
       },
     },
   });
 
   return candidates.map((c) => ({
-    education: c.education,
-    count: c._count.education,
+    nationality: c.nationality,
+    count: c._count.nationality,
   }));
 }
 
@@ -483,7 +483,7 @@ export async function deleteRequest(id: string) {
 export interface CandidateFilters {
   search?: string;
   city?: string;
-  education?: string;
+  nationality?: string;
   fromDate?: Date;
   toDate?: Date;
   page?: number;
@@ -494,7 +494,7 @@ export async function getAllCandidates(filters: CandidateFilters = {}) {
   const {
     search,
     city,
-    education,
+    nationality,
     fromDate,
     toDate,
     page = 1,
@@ -504,7 +504,7 @@ export async function getAllCandidates(filters: CandidateFilters = {}) {
   const where: any = {};
 
   if (city) where.city = city;
-  if (education) where.education = education;
+  if (nationality) where.nationality = nationality;
   if (fromDate || toDate) {
     where.submittedAt = {};
     if (fromDate) where.submittedAt.gte = fromDate;
@@ -639,6 +639,9 @@ export async function getAllEmployers(filters: EmployerFilters = {}) {
             select: {
               id: true,
               email: true,
+              status: true,
+              commercialRegistrationNumber: true,
+              commercialRegistrationImageUrl: true,
               createdAt: true,
             },
           },
@@ -693,7 +696,7 @@ export async function getEmployerById(id: string) {
                 phone: true,
                 email: true,
                 city: true,
-                education: true,
+                nationality: true,
                 skills: true,
               },
             },
@@ -825,5 +828,125 @@ export async function updatePlatformSettings(
   } catch (error) {
     console.error('Error updating platform settings:', error);
     throw new Error('Failed to update platform settings');
+  }
+}
+
+// ============================================
+// EMPLOYER APPROVAL MANAGEMENT
+// ============================================
+
+/**
+ * Get all pending employers awaiting approval
+ */
+export async function getPendingEmployers() {
+  try {
+    const pendingEmployers = await db.user.findMany({
+      where: {
+        role: 'EMPLOYER',
+        status: 'PENDING',
+      },
+      select: {
+        id: true,
+        email: true,
+        commercialRegistrationNumber: true,
+        commercialRegistrationImageUrl: true,
+        status: true,
+        createdAt: true,
+        employerProfile: {
+          select: {
+            id: true,
+            companyName: true,
+            contactPerson: true,
+            phone: true,
+            companyWebsite: true,
+            industry: true,
+            companySize: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+
+    return pendingEmployers;
+  } catch (error) {
+    console.error('Error fetching pending employers:', error);
+    throw new Error('Failed to fetch pending employers');
+  }
+}
+
+/**
+ * Approve an employer application
+ */
+export async function approveEmployer(employerId: string, adminId: string) {
+  try {
+    // Update employer status to APPROVED
+    const employer = await db.user.update({
+      where: { id: employerId },
+      data: { status: 'APPROVED' },
+      include: {
+        employerProfile: true,
+      },
+    });
+
+    // Log the action
+    await db.auditLog.create({
+      data: {
+        adminId,
+        action: 'APPROVE_EMPLOYER',
+        entityType: 'EMPLOYER',
+        entityId: employerId,
+        details: JSON.stringify({
+          email: employer.email,
+          companyName: employer.employerProfile?.companyName,
+          previousStatus: 'PENDING',
+          newStatus: 'APPROVED',
+        }),
+      },
+    });
+
+    return employer;
+  } catch (error) {
+    console.error('Error approving employer:', error);
+    throw new Error('Failed to approve employer');
+  }
+}
+
+/**
+ * Reject an employer application
+ */
+export async function rejectEmployer(employerId: string, adminId: string, reason?: string) {
+  try {
+    // Update employer status to REJECTED
+    const employer = await db.user.update({
+      where: { id: employerId },
+      data: { status: 'REJECTED' },
+      include: {
+        employerProfile: true,
+      },
+    });
+
+    // Log the action
+    await db.auditLog.create({
+      data: {
+        adminId,
+        action: 'REJECT_EMPLOYER',
+        entityType: 'EMPLOYER',
+        entityId: employerId,
+        details: JSON.stringify({
+          email: employer.email,
+          companyName: employer.employerProfile?.companyName,
+          previousStatus: 'PENDING',
+          newStatus: 'REJECTED',
+          reason: reason || 'No reason provided',
+        }),
+      },
+    });
+
+    return employer;
+  } catch (error) {
+    console.error('Error rejecting employer:', error);
+    throw new Error('Failed to reject employer');
   }
 }

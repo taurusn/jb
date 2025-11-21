@@ -10,7 +10,7 @@ interface Candidate {
   email: string | null;
   phone: string;
   city: string;
-  education: string;
+  nationality: string;
   skills: string; // TEXT field, not array
   experience: string; // TEXT field
   resumeUrl: string | null;
@@ -28,7 +28,7 @@ export default function CandidatesPage() {
   const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [cityFilter, setCityFilter] = useState<string>('ALL');
-  const [educationFilter, setEducationFilter] = useState<string>('ALL');
+  const [nationalityFilter, setNationalityFilter] = useState<string>('ALL');
   const [sortBy, setSortBy] = useState<'date' | 'name'>('date');
 
   useEffect(() => {
@@ -53,7 +53,7 @@ export default function CandidatesPage() {
 
   // Get unique values for filters
   const cities = Array.from(new Set(candidates.map((c) => c.city))).sort();
-  const educationLevels = Array.from(new Set(candidates.map((c) => c.education))).sort();
+  const nationalities = Array.from(new Set(candidates.map((c) => c.nationality))).sort();
 
   // Parse skills string to array for display
   const parseSkills = (skillsStr: string): string[] => {
@@ -73,10 +73,10 @@ export default function CandidatesPage() {
         );
 
       const matchesCity = cityFilter === 'ALL' || candidate.city === cityFilter;
-      const matchesEducation =
-        educationFilter === 'ALL' || candidate.education === educationFilter;
+      const matchesNationality =
+        nationalityFilter === 'ALL' || candidate.nationality === nationalityFilter;
 
-      return matchesSearch && matchesCity && matchesEducation;
+      return matchesSearch && matchesCity && matchesNationality;
     })
     .sort((a, b) => {
       if (sortBy === 'date') {
@@ -179,20 +179,20 @@ export default function CandidatesPage() {
             </select>
           </div>
 
-          {/* Education Filter */}
+          {/* Nationality Filter */}
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-2">
-              Education
+              Nationality
             </label>
             <select
-              value={educationFilter}
-              onChange={(e) => setEducationFilter(e.target.value)}
+              value={nationalityFilter}
+              onChange={(e) => setNationalityFilter(e.target.value)}
               className="w-full px-4 py-3 bg-dark-400 border-2 border-dark-300 rounded-lg text-brand-light focus:outline-none focus:ring-2 focus:ring-brand-yellow focus:border-brand-yellow transition-all"
             >
-              <option value="ALL">All Levels</option>
-              {educationLevels.map((edu) => (
-                <option key={edu} value={edu}>
-                  {edu}
+              <option value="ALL">All Nationalities</option>
+              {nationalities.map((nat) => (
+                <option key={nat} value={nat}>
+                  {nat}
                 </option>
               ))}
             </select>
@@ -225,12 +225,12 @@ export default function CandidatesPage() {
             </button>
           </div>
 
-          {(searchTerm || cityFilter !== 'ALL' || educationFilter !== 'ALL') && (
+          {(searchTerm || cityFilter !== 'ALL' || nationalityFilter !== 'ALL') && (
             <button
               onClick={() => {
                 setSearchTerm('');
                 setCityFilter('ALL');
-                setEducationFilter('ALL');
+                setNationalityFilter('ALL');
               }}
               className="px-4 py-2 bg-dark-400 text-gray-400 hover:bg-dark-300 hover:text-brand-light rounded-lg font-medium transition-all"
             >
@@ -281,7 +281,7 @@ export default function CandidatesPage() {
                     <h3 className="text-lg font-display font-bold text-brand-light truncate">
                       {candidate.fullName}
                     </h3>
-                    <p className="text-sm text-gray-400 truncate">{candidate.education}</p>
+                    <p className="text-sm text-gray-400 truncate">{candidate.nationality}</p>
                   </div>
                 </div>
 
@@ -368,7 +368,7 @@ export default function CandidatesPage() {
             <p className="text-sm text-gray-500">
               {searchTerm ||
               cityFilter !== 'ALL' ||
-              educationFilter !== 'ALL'
+              nationalityFilter !== 'ALL'
                 ? 'Try adjusting your filters'
                 : 'Candidates will appear here once they submit applications'}
             </p>

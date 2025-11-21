@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { translateSkill } from '@/lib/skill-categories';
 
 // Predefined skills for restaurant/hospitality industry (matching SkillSelector)
 const AVAILABLE_SKILLS = [
@@ -76,7 +77,7 @@ export default function SkillFilter({
             />
           </svg>
           <span className="text-sm sm:text-base font-medium text-brand-light">
-            Filter by Skills
+            تصفية حسب المهارات
           </span>
           {selectedSkills.length > 0 && (
             <span className="bg-brand-yellow text-brand-dark text-xs font-bold px-2 py-0.5 rounded-full">
@@ -101,7 +102,7 @@ export default function SkillFilter({
         {/* Match Mode Toggle */}
         <div className="bg-dark-400 border-2 border-dark-300 rounded-lg p-3 sm:p-4">
             <label className="block text-xs sm:text-sm font-medium text-gray-400 mb-2 sm:mb-3">
-              Match Type
+              نوع المطابقة
             </label>
             <div className="flex gap-2 sm:gap-3">
               <button
@@ -114,7 +115,7 @@ export default function SkillFilter({
                     : 'bg-dark-300 text-gray-400 hover:bg-dark-200 hover:text-brand-light'
                 } ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
               >
-                Match Any (OR)
+                أي مطابقة
               </button>
               <button
                 type="button"
@@ -126,13 +127,13 @@ export default function SkillFilter({
                     : 'bg-dark-300 text-gray-400 hover:bg-dark-200 hover:text-brand-light'
                 } ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
               >
-                Match All (AND)
+                كل المطابقات
               </button>
             </div>
             <p className="mt-2 text-xs text-gray-500">
               {matchMode === 'any'
-                ? 'Show candidates with at least one selected skill'
-                : 'Show only candidates with all selected skills'}
+                ? 'إظهار المرشحين الذين لديهم مهارة واحدة على الأقل'
+                : 'إظهار المرشحين الذين لديهم جميع المهارات المحددة فقط'}
             </p>
           </div>
 
@@ -140,7 +141,7 @@ export default function SkillFilter({
           <div className="bg-dark-400 border-2 border-dark-300 rounded-lg p-3 sm:p-4">
             <div className="flex items-center justify-between mb-3">
               <label className="block text-xs sm:text-sm font-medium text-gray-400">
-                Select Skills
+                اختر المهارات
               </label>
               <div className="flex gap-2">
                 <button
@@ -149,7 +150,7 @@ export default function SkillFilter({
                   disabled={disabled || selectedSkills.length === AVAILABLE_SKILLS.length}
                   className="text-xs text-brand-yellow hover:text-brand-yellow/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Select All
+                  تحديد الكل
                 </button>
                 <span className="text-gray-600">•</span>
                 <button
@@ -158,7 +159,7 @@ export default function SkillFilter({
                   disabled={disabled || selectedSkills.length === 0}
                   className="text-xs text-accent-orange hover:text-accent-red transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Clear All
+                  مسح الكل
                 </button>
               </div>
             </div>
@@ -220,7 +221,7 @@ export default function SkillFilter({
                         ${selected ? 'text-brand-light' : 'text-gray-300 group-hover:text-brand-light'}
                       `}
                     >
-                      {skill}
+                      {translateSkill(skill)}
                     </span>
 
                     {/* Glow effect when selected */}
@@ -238,10 +239,10 @@ export default function SkillFilter({
             <div className="bg-dark-400 border-2 border-brand-yellow/30 rounded-lg p-3 sm:p-4">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-xs sm:text-sm font-medium text-gray-400">
-                  Active Filters ({selectedSkills.length})
+                  الفلاتر النشطة ({selectedSkills.length})
                 </span>
                 <span className="text-xs text-brand-yellow font-semibold">
-                  {matchMode === 'any' ? 'Any Match' : 'All Match'}
+                  {matchMode === 'any' ? 'أي مطابقة' : 'كل المطابقات'}
                 </span>
               </div>
               <div className="flex flex-wrap gap-1.5 sm:gap-2">
@@ -250,7 +251,7 @@ export default function SkillFilter({
                     key={skill}
                     className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-brand-yellow/10 text-brand-yellow border border-brand-yellow/30 rounded-full text-xs font-medium"
                   >
-                    {skill}
+                    {translateSkill(skill)}
                     <button
                       type="button"
                       onClick={() => toggleSkill(skill)}

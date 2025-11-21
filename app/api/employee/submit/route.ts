@@ -91,20 +91,26 @@ export async function POST(request: NextRequest) {
     const phone = formData.get('phone') as string;
     const email = formData.get('email') as string | null;
     const city = formData.get('city') as string;
-    const education = formData.get('education') as string;
+    const nationality = formData.get('nationality') as string;
     const skills = formData.get('skills') as string;
     const experience = formData.get('experience') as string;
     const availableTimeSlots = formData.get('availableTimeSlots') as string | null;
+    const iqamaNumber = formData.get('iqamaNumber') as string;
+    const iqamaExpiryDate = formData.get('iqamaExpiryDate') as string;
+    const kafeelNumber = formData.get('kafeelNumber') as string;
 
     console.log('\nExtracted text fields:');
     console.log('  fullName:', fullName);
     console.log('  phone:', phone);
     console.log('  email:', email);
     console.log('  city:', city);
-    console.log('  education:', education);
+    console.log('  nationality:', nationality);
     console.log('  skills:', skills);
     console.log('  experience:', experience);
     console.log('  availableTimeSlots:', availableTimeSlots);
+    console.log('  iqamaNumber:', iqamaNumber);
+    console.log('  iqamaExpiryDate:', iqamaExpiryDate);
+    console.log('  kafeelNumber:', kafeelNumber);
 
     // Handle file uploads
     const resumeFile = formData.get('resume') as File | null;
@@ -147,12 +153,15 @@ export async function POST(request: NextRequest) {
       phone,
       email: email || undefined,
       city,
-      education,
+      nationality,
       skills,
       experience,
-      ...(resumeUrl && { resumeUrl }), // Only include if not empty
+      resumeUrl,
       ...(profilePictureUrl && { profilePictureUrl }), // Only include if not empty
       ...(availableTimeSlots && { availableTimeSlots }), // Interview availability
+      iqamaNumber,
+      iqamaExpiryDate: new Date(iqamaExpiryDate),
+      kafeelNumber,
     };
 
     console.log('\nApplication data to be validated:');

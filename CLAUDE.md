@@ -19,19 +19,29 @@ A comprehensive admin dashboard is now fully implemented at `/adminofjb/*`. This
 - **Dashboard Analytics:** Platform statistics with real-time counts and activity feeds
 - **Requests Management:** View, update status, and delete all employer-to-candidate requests
 - **Candidates Management:** Full CRUD operations for candidate applications with search and filtering
-- **Employers Management:** View, search, filter, and manage all employer accounts
+- **Employers Management:** View, search, filter, and manage all employer accounts with status badges
+- **✅ Employer Approval Workflow** (Fully Implemented):
+  - **Pending Employers Page** (`/adminofjb/employers/pending`) - Review new employer registrations
+  - View Commercial Registration (CR) documents (number + uploaded image/PDF)
+  - **Approve** employers → Status changes to APPROVED, can login
+  - **Reject** employers with reason → Status changes to REJECTED, blocked from login
+  - Auto-removes from pending list after approval/rejection
+  - Contact integration (WhatsApp, phone) for each applicant
 - **Platform Settings:** Configure and enforce maintenance mode, registrations, and platform-wide settings
   - ✅ **Fully Enforced** - Settings actively control platform behavior
   - Maintenance mode redirects non-admin users to `/maintenance`
   - Toggle employee applications on/off
   - Toggle employer registrations on/off
-- **Audit Logging:** Complete audit trail of all admin actions with timestamps and details
+- **Audit Logging:** Complete audit trail of all admin actions (including approve/reject) with timestamps and details
 - **Contact Information:** Click-to-call and WhatsApp integration for all phone numbers
 
 **Database Models:**
-- `AuditLog` - Tracks all admin actions (DELETE, UPDATE, etc.)
+- `AuditLog` - Tracks all admin actions (DELETE, UPDATE, APPROVE_EMPLOYER, REJECT_EMPLOYER, etc.)
 - `PlatformSettings` - Stores platform configuration (maintenance mode, registration toggles, etc.)
-- `User.role` - ADMIN enum for admin authentication
+- `User.role` - ADMIN / EMPLOYER enums for authentication
+- `User.status` - EmployerStatus enum (PENDING / APPROVED / REJECTED) for employer approval workflow
+- `User.commercialRegistrationNumber` - Required CR number for all employers
+- `User.commercialRegistrationImageUrl` - Required CR document (PDF/image) for all employers
 
 **Admin Access:**
 - Login at `/adminofjb/login`
@@ -251,26 +261,65 @@ instrumentation.ts             # Next.js hook to start background tasks on serve
 - Services contain business logic and database operations (`backend/services/*.ts`)
 - Controllers are thin wrappers that call services and format responses
 
-**2. Authentication Flow**
+**2. Authentication Flow & Employer Approval Workflow**
 - JWT tokens stored in httpOnly cookies (secure, not accessible via JS)
 - `lib/auth.ts` handles token generation/verification for Node.js runtime
 - `lib/auth-edge.ts` handles JWT verification for Edge runtime (used in middleware)
-- `middleware.ts` protects `/employer/*` and `/api/employer/*` routes
+- `middleware.ts` protects `/employer/*`, `/api/employer/*`, and `/adminofjb/*` routes
 - Token payload: `{ userId, email, role }`
 - Middleware injects user info into request headers: `x-user-id`, `x-user-email`, `x-user-role`
-- **Important:** Only `EMPLOYER` role is currently used. While middleware checks for `EMPLOYER` or `ADMIN`, there are no admin-specific routes or features
+
+**✅ Employer Registration & Approval Workflow:**
+1. **Registration** (`/register`):
+   - Employer fills form including **Commercial Registration (CR) Number** and uploads **CR Document** (PDF/image)
+   - CR document uploaded to `commercial-registrations/` folder in storage (Supabase/Cloudinary/Local)
+   - Account created with `status: PENDING`
+   - **No JWT token generated** - cannot login until approved
+   - Success message: "Your account is pending approval. We will review and contact you once approved."
+   - Redirects to `/login` page
+
+2. **Login Attempt (PENDING status)**:
+   - `auth.service.ts` checks `user.status` before generating token
+   - If `status === PENDING`: Returns error "Your account is pending approval. Please wait for admin review."
+   - If `status === REJECTED`: Returns error "Your account has been rejected. Contact support for more information."
+   - If `status === APPROVED`: Login successful, generates JWT token ✅
+
+3. **Admin Approval** (`/adminofjb/employers/pending`):
+   - Admin views all PENDING employers with company details and CR documents
+   - Can **Approve** → Changes `status` to `APPROVED`, logs action in `AuditLog`
+   - Can **Reject** (with reason) → Changes `status` to `REJECTED`, logs action with reason
+   - Employer auto-removed from pending list after action
+
+4. **Post-Approval Login**:
+   - Employer can now login successfully
+   - Full access to `/employer/dashboard` and all employer features
 
 **3. Database Schema (Prisma)**
 ```
-User (employer accounts)
+User (employer/admin accounts)
+  ├─ Required fields: email, passwordHash, role (EMPLOYER/ADMIN)
+  ├─ Employer-specific required fields:
+  │  ├─ commercialRegistrationNumber (CR number)
+  │  ├─ commercialRegistrationImageUrl (CR document URL)
+  │  └─ status (PENDING/APPROVED/REJECTED - default: PENDING)
   └─ EmployerProfile (1:1 - company details)
       └─ EmployeeRequest[] (1:many - requests for candidates)
 
 EmployeeApplication (job applications)
+  ├─ Required fields: fullName, phone, city, nationality, skills, experience
+  ├─ Required documents: resumeUrl, iqamaNumber, iqamaExpiryDate, kafeelNumber
+  ├─ Optional fields: email, profilePictureUrl, availableTimeSlots
   └─ EmployeeRequest[] (1:many - employers who requested this candidate)
 ```
 
 Key constraint: `@@unique([employeeId, employerId])` prevents duplicate requests
+
+**EmployeeApplication Field Details:**
+- `nationality`: Candidate's nationality (replaces deprecated `education` field)
+- `iqamaNumber`: Required - Saudi residency permit number (min 10 characters)
+- `iqamaExpiryDate`: Required - Expiry date of the Iqama
+- `kafeelNumber`: Required - Sponsor/Kafeel identification number
+- `resumeUrl`: Required - URL to uploaded resume/CV file
 
 **4. File Upload Strategy**
 - **Supabase Storage** (Priority #1) - Recommended for production and development
@@ -607,7 +656,7 @@ The following features from the roadmap have been **fully implemented**:
 **C. ✅ Card Layout:**
 - **Implemented Priority Order:**
   1. Candidate name + profile photo
-  2. Location + Education (icons)
+  2. Location + Nationality (icons)
   3. **Skills badges** (prominent, color-coded, with match indicators)
   4. Experience section (expandable)
   5. Availability (for unrequested candidates)

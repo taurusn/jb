@@ -20,9 +20,12 @@ export default function HomePage() {
     email: '',
     phone: '',
     city: '',
-    education: '',
+    nationality: '',
     skills: [] as string[],
     experience: '',
+    iqamaNumber: '',
+    iqamaExpiryDate: '',
+    kafeelNumber: '',
   });
 
   const [resumeFile, setResumeFile] = useState<File | null>(null);
@@ -135,7 +138,7 @@ export default function HomePage() {
         }
         return true;
 
-      case 2: // Location & Education
+      case 2: // Location & Nationality
         // City validation
         if (!formData.city.trim()) {
           setValidationError('Please enter your city');
@@ -150,17 +153,17 @@ export default function HomePage() {
           return false;
         }
 
-        // Education validation
-        if (!formData.education.trim()) {
-          setValidationError('Please enter your education details');
+        // Nationality validation
+        if (!formData.nationality.trim()) {
+          setValidationError('Please enter your nationality');
           return false;
         }
-        if (formData.education.trim().length < 2) {
-          setValidationError('Education information must be at least 2 characters');
+        if (formData.nationality.trim().length < 2) {
+          setValidationError('Nationality must be at least 2 characters');
           return false;
         }
-        if (formData.education.length > 200) {
-          setValidationError('Education information is too long (max 200 characters)');
+        if (formData.nationality.length > 100) {
+          setValidationError('Nationality is too long (max 100 characters)');
           return false;
         }
         return true;
@@ -195,6 +198,29 @@ export default function HomePage() {
           setValidationError('Please upload your resume/CV');
           return false;
         }
+
+        // Iqama Number validation
+        if (!formData.iqamaNumber.trim()) {
+          setValidationError('Please enter your Iqama number');
+          return false;
+        }
+        if (formData.iqamaNumber.trim().length < 10) {
+          setValidationError('Iqama number must be at least 10 characters');
+          return false;
+        }
+
+        // Iqama Expiry Date validation
+        if (!formData.iqamaExpiryDate) {
+          setValidationError('Please select your Iqama expiry date');
+          return false;
+        }
+
+        // Kafeel Number validation
+        if (!formData.kafeelNumber.trim()) {
+          setValidationError('Please enter your Kafeel number');
+          return false;
+        }
+
         return true;
 
       default:
@@ -626,14 +652,14 @@ export default function HomePage() {
               </div>
               )}
 
-              {/* Step 2: Location & Education */}
+              {/* Step 2: Location & Nationality */}
               {currentStep === 2 && (
               <div className="space-y-4 sm:space-y-6 animate-fade-in">
                 <h3 className="text-base sm:text-lg font-semibold text-brand-light flex items-center gap-2">
                   <span className="w-7 h-7 sm:w-8 sm:h-8 bg-brand-yellow rounded-full flex items-center justify-center text-brand-dark text-xs sm:text-sm font-bold flex-shrink-0">
                     2
                   </span>
-                  Location & Education
+                  Location & Nationality
                 </h3>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
@@ -655,18 +681,17 @@ export default function HomePage() {
                   />
 
                   <Input
-                    label="Education"
+                    label="Nationality"
                     type="text"
-                    name="education"
-                    value={formData.education}
+                    name="nationality"
+                    value={formData.nationality}
                     onChange={handleInputChange}
-                    placeholder="Bachelor's in Computer Science"
+                    placeholder="Saudi Arabian"
                     required
                     fullWidth
                     icon={
                       <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l9-5-9-5-9 5 9 5z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9" />
                       </svg>
                     }
                   />
@@ -752,6 +777,43 @@ export default function HomePage() {
                   onChange={handleProfilePictureChange}
                   helperText="Accepted formats: JPG, PNG (Max 2MB)"
                 />
+
+                <div className="pt-4 border-t border-gray-700">
+                  <h4 className="text-sm sm:text-base font-medium text-brand-light mb-4">
+                    Document Information
+                  </h4>
+
+                  <div className="space-y-4">
+                    <Input
+                      label="Iqama Number"
+                      name="iqamaNumber"
+                      type="text"
+                      value={formData.iqamaNumber}
+                      onChange={handleInputChange}
+                      placeholder="Enter your Iqama number"
+                      required
+                    />
+
+                    <Input
+                      label="Iqama Expiry Date"
+                      name="iqamaExpiryDate"
+                      type="date"
+                      value={formData.iqamaExpiryDate}
+                      onChange={handleInputChange}
+                      required
+                    />
+
+                    <Input
+                      label="Kafeel Number"
+                      name="kafeelNumber"
+                      type="text"
+                      value={formData.kafeelNumber}
+                      onChange={handleInputChange}
+                      placeholder="Enter your Kafeel number"
+                      required
+                    />
+                  </div>
+                </div>
               </div>
               )}
 

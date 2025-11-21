@@ -14,12 +14,20 @@ datasource db {
 // USER MODEL (For Employer Authentication)
 // ============================================
 model User {
-  id            String          @id @default(uuid())
-  email         String          @unique
-  passwordHash  String          @map("password_hash")
-  role          Role            @default(EMPLOYER)
-  createdAt     DateTime        @default(now()) @map("created_at")
-  updatedAt     DateTime        @updatedAt @map("updated_at")
+  id                              String         @id @default(uuid())
+  email                           String         @unique
+  passwordHash                    String         @map("password_hash")
+  role                            Role           @default(EMPLOYER)
+
+  // Commercial Registration (Required for employers)
+  commercialRegistrationNumber    String         @map("commercial_registration_number")
+  commercialRegistrationImageUrl  String         @map("commercial_registration_image_url")
+
+  // Account Status (Employer approval workflow)
+  status                          EmployerStatus @default(PENDING)
+
+  createdAt                       DateTime       @default(now()) @map("created_at")
+  updatedAt                       DateTime       @updatedAt @map("updated_at")
 
   // Relations
   employerProfile EmployerProfile?
@@ -59,12 +67,17 @@ model EmployeeApplication {
   phone               String
   email               String?
   city                String
-  education           String
+  nationality         String
   skills              String   @db.Text
   experience          String   @db.Text
-  resumeUrl           String?  @map("resume_url")
+  resumeUrl           String   @map("resume_url")
   profilePictureUrl   String?  @map("profile_picture_url")
   submittedAt         DateTime @default(now()) @map("submitted_at")
+
+  // Document Information (Required)
+  iqamaNumber         String   @map("iqama_number")
+  iqamaExpiryDate     DateTime @map("iqama_expiry_date")
+  kafeelNumber        String   @map("kafeel_number")
 
   // Interview Availability
   // Stores JSON array: [{date: "2024-01-15", times: ["09:00", "10:00", "14:00"]}]
@@ -148,6 +161,12 @@ model PlatformSettings {
 enum Role {
   EMPLOYER
   ADMIN
+}
+
+enum EmployerStatus {
+  PENDING   // Awaiting admin approval
+  APPROVED  // Can login and use platform
+  REJECTED  // Application rejected
 }
 
 enum EmployeeRequestStatus {

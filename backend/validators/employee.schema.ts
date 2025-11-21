@@ -22,10 +22,10 @@ export const employeeApplicationSchema = z.object({
     .string()
     .min(2, 'City name must be at least 2 characters')
     .max(50, 'City name is too long'),
-  education: z
+  nationality: z
     .string()
-    .min(2, 'Education information is required')
-    .max(200, 'Education information is too long'),
+    .min(2, 'Nationality is required')
+    .max(100, 'Nationality is too long'),
   skills: z
     .string()
     .min(1, 'Please select at least one skill')
@@ -40,8 +40,7 @@ export const employeeApplicationSchema = z.object({
     .max(2000, 'Experience description is too long'),
   resumeUrl: z
     .string()
-    .min(1, 'Resume path is required')
-    .optional(),
+    .min(1, 'Resume is required'),
   profilePictureUrl: z
     .string()
     .min(1, 'Profile picture path is required')
@@ -49,6 +48,18 @@ export const employeeApplicationSchema = z.object({
   availableTimeSlots: z
     .string()
     .optional(),
+  iqamaNumber: z
+    .string()
+    .min(10, 'Iqama number must be at least 10 characters')
+    .max(20, 'Iqama number is too long'),
+  iqamaExpiryDate: z
+    .string()
+    .min(1, 'Iqama expiry date is required')
+    .transform((val) => new Date(val)),
+  kafeelNumber: z
+    .string()
+    .min(1, 'Kafeel number is required')
+    .max(50, 'Kafeel number is too long'),
 });
 
 export type EmployeeApplicationInput = z.infer<typeof employeeApplicationSchema>;
@@ -107,7 +118,7 @@ export type UpdateRequestStatusInput = z.infer<typeof updateRequestStatusSchema>
 // ============================================
 export const employeeSearchSchema = z.object({
   city: z.string().optional(),
-  education: z.string().optional(),
+  nationality: z.string().optional(),
   skills: z.string().optional(),
   experience: z.string().optional(),
   search: z.string().optional(),

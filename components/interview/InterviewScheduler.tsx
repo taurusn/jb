@@ -13,9 +13,9 @@ interface InterviewSchedulerProps {
 }
 
 const DURATIONS = [
-  { value: 30, label: '30 minutes' },
-  { value: 45, label: '45 minutes' },
-  { value: 60, label: '1 hour' },
+  { value: 30, label: '30 دقيقة' },
+  { value: 45, label: '45 دقيقة' },
+  { value: 60, label: 'ساعة واحدة' },
 ];
 
 export default function InterviewScheduler({
@@ -106,16 +106,16 @@ export default function InterviewScheduler({
       <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
         <div className="bg-brand-dark border border-brand-yellow/20 rounded-lg p-6 sm:p-8 max-w-md w-full">
           <h2 className="text-xl sm:text-2xl font-bold text-brand-light mb-4">
-            No Availability Provided
+            لم يتم توفير أوقات متاحة
           </h2>
           <p className="text-gray-400 mb-6">
-            {candidateName} has not provided their interview availability yet.
+            {candidateName} لم يوفر أوقات المقابلة المتاحة بعد.
           </p>
           <button
             onClick={onCancel}
             className="w-full py-2.5 bg-gray-700 hover:bg-gray-600 text-white rounded-md transition-colors"
           >
-            Close
+            إغلاق
           </button>
         </div>
       </div>
@@ -128,17 +128,17 @@ export default function InterviewScheduler({
         {/* Header */}
         <div className="mb-6">
           <h2 className="text-xl sm:text-2xl font-bold text-brand-light mb-2">
-            Schedule Interview
+            جدولة مقابلة
           </h2>
           <p className="text-gray-400">
-            Select a date and time that works for you from {candidateName}'s availability
+            اختر التاريخ والوقت المناسب لك من أوقات {candidateName} المتاحة
           </p>
         </div>
 
         {/* Date Selection */}
         <div className="mb-6">
           <h3 className="text-base sm:text-lg font-semibold text-brand-light mb-3">
-            Select Date
+            اختر التاريخ
           </h3>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
             {availableDates.map((dateInfo) => (
@@ -162,7 +162,7 @@ export default function InterviewScheduler({
         {selectedDate && (
           <div className="mb-6 animate-slide-down">
             <h3 className="text-base sm:text-lg font-semibold text-brand-light mb-3">
-              Select Time
+              اختر الوقت
             </h3>
             <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2 max-h-48 overflow-y-auto p-1">
               {availableTimes.map((time) => (
@@ -187,7 +187,7 @@ export default function InterviewScheduler({
         {selectedTime && (
           <div className="mb-6 animate-slide-down">
             <h3 className="text-base sm:text-lg font-semibold text-brand-light mb-3">
-              Select Duration
+              اختر المدة
             </h3>
             <div className="grid grid-cols-3 gap-2">
               {DURATIONS.map((duration) => (
@@ -211,12 +211,12 @@ export default function InterviewScheduler({
         {/* Summary */}
         {selectedDate && selectedTime && (
           <div className="mb-6 p-4 bg-brand-dark/50 border border-brand-yellow/20 rounded-lg animate-slide-down">
-            <h4 className="text-sm font-semibold text-brand-yellow mb-2">Interview Summary</h4>
+            <h4 className="text-sm font-semibold text-brand-yellow mb-2">ملخص المقابلة</h4>
             <div className="space-y-1 text-sm text-gray-300">
-              <p><span className="text-gray-500">Candidate:</span> {candidateName}</p>
-              <p><span className="text-gray-500">Date:</span> {formatDate(selectedDate)}</p>
-              <p><span className="text-gray-500">Time:</span> {selectedTime}</p>
-              <p><span className="text-gray-500">Duration:</span> {DURATIONS.find(d => d.value === selectedDuration)?.label}</p>
+              <p><span className="text-gray-500">المرشح:</span> {candidateName}</p>
+              <p><span className="text-gray-500">التاريخ:</span> {formatDate(selectedDate)}</p>
+              <p><span className="text-gray-500">الوقت:</span> {selectedTime}</p>
+              <p><span className="text-gray-500">المدة:</span> {DURATIONS.find(d => d.value === selectedDuration)?.label}</p>
             </div>
           </div>
         )}
@@ -228,14 +228,14 @@ export default function InterviewScheduler({
             disabled={loading}
             className="flex-1 py-2.5 bg-gray-700 hover:bg-gray-600 text-white rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Cancel
+            إلغاء
           </button>
           <button
             onClick={handleSchedule}
             disabled={!selectedDate || !selectedTime || loading}
             className="flex-1 py-2.5 bg-brand-yellow hover:bg-yellow-400 text-brand-dark font-bold rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? 'Scheduling...' : 'Schedule Interview'}
+            {loading ? 'جارٍ الجدولة...' : 'جدولة المقابلة'}
           </button>
         </div>
       </div>

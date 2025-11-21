@@ -8,12 +8,15 @@ export interface EmployeeFormData {
   email: string;
   phone: string;
   city: string;
-  education: string;
+  nationality: string;
   skills: string | string[]; // Accept both string and array formats
   experience: string;
   resume: File | null;
   profilePicture?: File | null;
   availableTimeSlots?: string; // JSON string of availability
+  iqamaNumber: string;
+  iqamaExpiryDate: string;
+  kafeelNumber: string;
 }
 
 export interface UseEmployeeFormReturn {
@@ -37,12 +40,16 @@ export const useEmployeeForm = (): UseEmployeeFormReturn => {
 
     try {
       // Validate required fields
-      if (!data.fullName || !data.phone || !data.city || !data.education || !data.skills || !data.experience) {
+      if (!data.fullName || !data.phone || !data.city || !data.nationality || !data.skills || !data.experience) {
         throw new Error('Please fill in all required fields');
       }
 
       if (!data.resume) {
         throw new Error('Please upload your resume');
+      }
+
+      if (!data.iqamaNumber || !data.iqamaExpiryDate || !data.kafeelNumber) {
+        throw new Error('Please fill in all document information');
       }
 
       // Create FormData for file upload
@@ -51,7 +58,7 @@ export const useEmployeeForm = (): UseEmployeeFormReturn => {
       if (data.email) formData.append('email', data.email);
       formData.append('phone', data.phone);
       formData.append('city', data.city);
-      formData.append('education', data.education);
+      formData.append('nationality', data.nationality);
       // Convert skills array to comma-separated string
       const skillsString = Array.isArray(data.skills) ? data.skills.join(', ') : data.skills;
       formData.append('skills', skillsString);
@@ -59,6 +66,9 @@ export const useEmployeeForm = (): UseEmployeeFormReturn => {
       formData.append('resume', data.resume);
       if (data.profilePicture) formData.append('profilePicture', data.profilePicture);
       if (data.availableTimeSlots) formData.append('availableTimeSlots', data.availableTimeSlots);
+      formData.append('iqamaNumber', data.iqamaNumber);
+      formData.append('iqamaExpiryDate', data.iqamaExpiryDate);
+      formData.append('kafeelNumber', data.kafeelNumber);
 
       // Submit to API
       const response = await fetch('/api/employee/submit', {
@@ -80,7 +90,7 @@ export const useEmployeeForm = (): UseEmployeeFormReturn => {
         email: data.email,
         phone: data.phone,
         city: data.city,
-        education: data.education,
+        nationality: data.nationality,
         skills: skillsString, // Use the converted string
         hasAvailability: !!data.availableTimeSlots,
         timestamp: new Date().toISOString(),

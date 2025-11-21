@@ -227,12 +227,16 @@ export async function getApplicantsWithRequestStatus(
       phone: string;
       email: string | null;
       city: string;
-      education: string;
+      nationality: string;
       skills: string;
       experience: string;
-      resumeUrl: string | null;
+      resumeUrl: string;
       profilePictureUrl: string | null;
       submittedAt: Date;
+      iqamaNumber: string;
+      iqamaExpiryDate: Date;
+      kafeelNumber: string;
+      availableTimeSlots: string | null;
       employeeRequests: Array<{ status: 'PENDING' | 'APPROVED' | 'REJECTED'; id: string }>;
     }) => ({
       ...applicant,

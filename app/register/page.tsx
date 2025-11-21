@@ -22,8 +22,12 @@ export default function RegisterPage() {
     industry: '',
     companySize: '',
     companyWebsite: '',
+    commercialRegistrationNumber: '',
   });
 
+  const [crImage, setCrImage] = useState<File | null>(null);
+  const [crImagePreview, setCrImagePreview] = useState<string | null>(null);
+  const [uploadingCr, setUploadingCr] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
@@ -85,6 +89,41 @@ export default function RegisterPage() {
     return errors;
   };
 
+  const handleCrImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Validate file type
+      const validTypes = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
+      if (!validTypes.includes(file.type)) {
+        setFieldErrors({ crImage: 'Please upload a PDF or image file (JPG, PNG)' });
+        return;
+      }
+
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        setFieldErrors({ crImage: 'File size must be less than 5MB' });
+        return;
+      }
+
+      setCrImage(file);
+      // Clear error
+      const newErrors = { ...fieldErrors };
+      delete newErrors.crImage;
+      setFieldErrors(newErrors);
+
+      // Create preview for images
+      if (file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setCrImagePreview(reader.result as string);
+        };
+        reader.readAsDataURL(file);
+      } else {
+        setCrImagePreview(null); // PDF, no preview
+      }
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -107,6 +146,38 @@ export default function RegisterPage() {
         throw new Error(errorMessage);
       }
 
+      // Validate CR fields
+      if (!formData.commercialRegistrationNumber) {
+        setFieldErrors({ commercialRegistrationNumber: 'Commercial Registration Number is required' });
+        throw new Error('Commercial Registration Number is required');
+      }
+
+      if (!crImage) {
+        setFieldErrors({ crImage: 'Commercial Registration document is required' });
+        throw new Error('Commercial Registration document is required');
+      }
+
+      // Upload CR image first
+      setUploadingCr(true);
+      const uploadFormData = new FormData();
+      uploadFormData.append('file', crImage);
+      uploadFormData.append('type', 'document');
+      uploadFormData.append('subfolder', 'commercial-registrations');
+
+      const uploadResponse = await fetch('/api/upload', {
+        method: 'POST',
+        body: uploadFormData,
+      });
+
+      if (!uploadResponse.ok) {
+        throw new Error('Failed to upload Commercial Registration document');
+      }
+
+      const uploadData = await uploadResponse.json();
+      const crImageUrl = uploadData.url;
+      setUploadingCr(false);
+
+      // Register with CR fields
       const response = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -120,6 +191,8 @@ export default function RegisterPage() {
           industry: formData.industry,
           companySize: formData.companySize,
           companyWebsite: formData.companyWebsite || undefined,
+          commercialRegistrationNumber: formData.commercialRegistrationNumber,
+          commercialRegistrationImageUrl: crImageUrl,
         }),
       });
 
@@ -133,18 +206,19 @@ export default function RegisterPage() {
         throw new Error('Registration failed. Please try again.');
       }
 
-      // Show success message
-      setSuccessMessage('Account created successfully! Redirecting to dashboard...');
+      // Show success message (account is pending approval)
+      setSuccessMessage(data.message || 'Registration successful! Your account is pending approval.');
 
-      // Redirect to dashboard after a short delay
+      // Redirect to login page after a short delay
       setTimeout(() => {
-        router.push('/employer/dashboard');
-      }, 1500);
+        router.push('/login');
+      }, 3000);
     } catch (err) {
       const error = err as Error;
       setError(error.message);
     } finally {
       setLoading(false);
+      setUploadingCr(false);
     }
   };
 
@@ -494,6 +568,67 @@ export default function RegisterPage() {
                     }
                   />
                 </div>
+
+                {/* Commercial Registration Section */}
+                <div className="border-t-2 border-dark-300 pt-6">
+                  <h3 className="text-lg font-display font-bold text-brand-yellow mb-4">
+                    Commercial Registration
+                  </h3>
+
+                  <div className="space-y-4">
+                    <Input
+                      label="Commercial Registration Number"
+                      type="text"
+                      name="commercialRegistrationNumber"
+                      value={formData.commercialRegistrationNumber}
+                      onChange={handleChange}
+                      placeholder="e.g., 1234567890"
+                      fullWidth
+                      required
+                      disabled={loading}
+                      error={fieldErrors.commercialRegistrationNumber}
+                      icon={
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                      }
+                    />
+
+                    <div>
+                      <label className="block text-sm font-semibold text-brand-light mb-2">
+                        Commercial Registration Document <span className="text-brand-yellow">*</span>
+                      </label>
+                      <p className="text-xs text-gray-400 mb-2">
+                        Upload a clear image or PDF of your Commercial Registration (Max 5MB)
+                      </p>
+                      <input
+                        type="file"
+                        accept=".pdf,.jpg,.jpeg,.png"
+                        onChange={handleCrImageChange}
+                        disabled={loading}
+                        className="block w-full text-sm text-gray-400 file:mr-4 file:py-3 file:px-6 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-brand-yellow file:text-brand-dark hover:file:bg-brand-yellow/90 file:transition-all file:cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                      />
+                      {fieldErrors.crImage && (
+                        <p className="mt-2 text-sm text-red-400">{fieldErrors.crImage}</p>
+                      )}
+                      {crImagePreview && (
+                        <div className="mt-3">
+                          <p className="text-xs text-gray-400 mb-2">Preview:</p>
+                          <img
+                            src={crImagePreview}
+                            alt="CR Preview"
+                            className="w-full max-w-md rounded-lg border-2 border-dark-300"
+                          />
+                        </div>
+                      )}
+                      {crImage && !crImagePreview && (
+                        <p className="mt-2 text-sm text-green-400">
+                          ✓ {crImage.name} selected
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
               </div>
 
               {/* Submit Button */}
@@ -503,9 +638,10 @@ export default function RegisterPage() {
                   variant="primary"
                   size="lg"
                   fullWidth
-                  loading={loading}
+                  disabled={loading || uploadingCr}
+                  loading={loading || uploadingCr}
                 >
-                  {loading ? 'Creating Account...' : 'Create Employer Account'}
+                  {uploadingCr ? 'Uploading CR Document...' : loading ? 'Creating Account...' : 'Create Employer Account'}
                 </Button>
               </div>
 
