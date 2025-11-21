@@ -5,6 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useState } from 'react';
 
 export function AdminNavbar() {
+  // Admin navigation with pending employer approvals
   const pathname = usePathname();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -26,6 +27,7 @@ export function AdminNavbar() {
 
   const navItems = [
     { href: '/adminofjb/dashboard', label: 'Dashboard', icon: '📊' },
+    { href: '/adminofjb/employers/pending', label: 'Pending Approvals', icon: '⏳' },
     { href: '/adminofjb/requests', label: 'Requests', icon: '📋' },
     { href: '/adminofjb/candidates', label: 'Candidates', icon: '👥' },
     { href: '/adminofjb/employers', label: 'Employers', icon: '🏢' },

@@ -21,12 +21,13 @@ A comprehensive admin dashboard is now fully implemented at `/adminofjb/*`. This
 - **Candidates Management:** Full CRUD operations for candidate applications with search and filtering
 - **Employers Management:** View, search, filter, and manage all employer accounts with status badges
 - **✅ Employer Approval Workflow** (Fully Implemented):
-  - **Pending Employers Page** (`/adminofjb/employers/pending`) - Review new employer registrations
-  - View Commercial Registration (CR) documents (number + uploaded image/PDF)
+  - **Pending Employers Page** (`/adminofjb/employers/pending`) - Accessible via "⏳ Pending Approvals" in admin navbar
+  - View Commercial Registration (CR) documents using full-page document viewer (`/view-document`)
   - **Approve** employers → Status changes to APPROVED, can login
-  - **Reject** employers with reason → Status changes to REJECTED, blocked from login
+  - **Reject** employers with optional reason → Status changes to REJECTED, blocked from login
   - Auto-removes from pending list after approval/rejection
-  - Contact integration (WhatsApp, phone) for each applicant
+  - Contact integration (WhatsApp, phone) for each employer
+  - View CR Document button opens documents in consistent viewer with download option
 - **Platform Settings:** Configure and enforce maintenance mode, registrations, and platform-wide settings
   - ✅ **Fully Enforced** - Settings actively control platform behavior
   - Maintenance mode redirects non-admin users to `/maintenance`
@@ -186,12 +187,15 @@ app/                           # Next.js App Router
 │   ├── google/                # Google Calendar OAuth flow
 │   └── files/                 # File viewing endpoint
 ├── adminofjb/                 # Admin dashboard pages (protected by middleware)
+│   ├── layout.tsx             # Admin layout with navigation (Dashboard, Pending Approvals, Requests, Candidates, Employers, Settings)
 │   ├── candidates/            # Candidate management pages
 │   ├── dashboard/             # Admin dashboard homepage
 │   ├── employers/             # Employer management pages
+│   │   └── pending/           # Pending employer approvals page
 │   ├── login/                 # Admin login page
 │   ├── requests/              # Request management pages
 │   └── settings/              # Platform settings page
+├── view-document/             # Full-page document viewer for resumes and CR documents
 ├── employer/dashboard/        # Protected employer dashboard page
 ├── employers/                 # Public employer landing page (Arabic, RTL)
 ├── login/                     # Login page
@@ -326,33 +330,50 @@ Key constraint: `@@unique([employeeId, employerId])` prevents duplicate requests
 - **Cloudinary** (Priority #2) - Alternative cloud storage if Supabase not configured
 - **Local filesystem** (Priority #3) - Fallback for development (`UPLOAD_DIR` environment variable)
 - Handled by `lib/upload.ts` (auto-detects available storage)
-- File types: CV (PDF, DOC, DOCX), Profile Pictures (JPEG, PNG)
+- File types: CV (PDF, DOC, DOCX), Profile Pictures (JPEG, PNG), CR Documents (PDF, images)
 - Bucket name: `JB` (configured in Supabase Dashboard)
-- Files organized in folders: `resumes/` and `profiles/`
+- Files organized in folders: `resumes/`, `profiles/`, and `commercial-registrations/`
 
-**5. Interview Scheduling**
+**5. Document Viewer**
+- **Full-page viewer** at `/view-document` for consistent document viewing experience
+- **Features:**
+  - Iframe-based PDF/document display with proper headers
+  - Download functionality with candidate/company name in filename
+  - Loading states and error handling
+  - Responsive design (mobile-optimized)
+- **Backend:** `/api/files/view` proxies files with proper authentication
+  - Supports Supabase private files, Cloudinary URLs, and local files
+  - Only authenticated employers and admins can access
+  - Admins have unrestricted access to all documents
+- **Usage:**
+  - Resumes: `/view-document?file=<url>&name=<candidate-name>`
+  - CR Documents: `/view-document?file=<url>&name=<company-name> - CR Document`
+- **Security:** Files are validated before serving, proper content-type headers prevent XSS
+
+**6. Interview Scheduling**
 - Google Calendar API integration (`lib/google-calendar.ts`)
 - OAuth2 flow for admin authorization (`/api/google/auth/*`)
 - Automatically creates Google Meet links
 - Sends email invitations to both parties
 - Meeting data stored in `EmployeeRequest` model: `meetingLink`, `meetingDate`, `meetingDuration`, `meetingEndsAt`
 
-**6. Background Tasks**
+**7. Background Tasks**
 - Initiated via `instrumentation.ts` (runs once on server startup)
 - Weekly cleanup of expired meetings (removes old meeting links from DB)
 - Self-contained - no external cron service needed
 
-**7. Email System**
+**8. Email System**
 - Resend API for transactional emails (`lib/email.ts`)
 - MX record validation for email addresses (`lib/email-validator.ts`)
 - Templates for: employer invitations, interview confirmations
 
-**8. Validation Strategy**
+**9. Validation Strategy**
 - Zod schemas in `backend/validators/*.ts`
 - Validation happens in controllers before passing to services
 - Type-safe runtime validation
+- **Important:** Date fields like `iqamaExpiryDate` should be passed as strings to validators, which then transform them to Date objects
 
-**9. Skills System** (✅ Fully Implemented)
+**10. Skills System** (✅ Fully Implemented)
 
 ### A. Skills Selection (`components/SkillSelector.tsx`)
 - Multi-select checkbox interface for candidate applications
@@ -370,6 +391,10 @@ Key constraint: `@@unique([employeeId, employerId])` prevents duplicate requests
   - Selection counter and "Clear all" functionality
   - Responsive layout (1 column mobile, 2 columns desktop)
   - Validation: Minimum 1 skill required
+- **Implementation Notes:**
+  - Uses controlled state pattern with `onChange` callback
+  - State updates and parent notifications happen sequentially (not inside setState)
+  - Accepts both string (comma-separated) and array formats for initial value
 
 ### B. Skills Filtering (`components/employer/SkillFilter.tsx`)
 - **Multi-select filter** for employer dashboard

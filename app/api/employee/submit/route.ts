@@ -160,7 +160,7 @@ export async function POST(request: NextRequest) {
       ...(profilePictureUrl && { profilePictureUrl }), // Only include if not empty
       ...(availableTimeSlots && { availableTimeSlots }), // Interview availability
       iqamaNumber,
-      iqamaExpiryDate: new Date(iqamaExpiryDate),
+      iqamaExpiryDate, // Pass as string - validator will transform to Date
       kafeelNumber,
     };
 

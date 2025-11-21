@@ -41,15 +41,16 @@ export default function SkillSelector({
   const toggleSkill = (skill: string) => {
     if (disabled) return;
 
-    setSelectedSkills((prev) => {
-      const newSkills = prev.includes(skill)
-        ? prev.filter((s) => s !== skill)
-        : [...prev, skill];
+    // Calculate new skills array
+    const newSkills = selectedSkills.includes(skill)
+      ? selectedSkills.filter((s) => s !== skill)
+      : [...selectedSkills, skill];
 
-      // Call onChange with new value
-      onChange(newSkills);
-      return newSkills;
-    });
+    // Update local state
+    setSelectedSkills(newSkills);
+
+    // Notify parent of change
+    onChange(newSkills);
   };
 
   const isSelected = (skill: string) => selectedSkills.includes(skill);
@@ -146,7 +147,10 @@ export default function SkillSelector({
         {selectedSkills.length > 0 && (
           <button
             type="button"
-            onClick={() => setSelectedSkills([])}
+            onClick={() => {
+              setSelectedSkills([]);
+              onChange([]);
+            }}
             disabled={disabled}
             className="text-accent-orange hover:text-accent-red transition-colors duration-200 font-medium"
           >

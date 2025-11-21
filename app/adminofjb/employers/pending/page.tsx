@@ -98,14 +98,9 @@ export default function PendingEmployersPage() {
     }
   };
 
-  const viewCrDocument = (url: string) => {
-    if (url.startsWith('supabase-private://')) {
-      // Open in new tab with API endpoint
-      window.open(`/api/files/view?file=${encodeURIComponent(url)}`, '_blank');
-    } else {
-      // Direct URL
-      window.open(url, '_blank');
-    }
+  const viewCrDocument = (url: string, companyName: string) => {
+    // Use the document viewer page for consistent viewing experience
+    window.open(`/view-document?file=${encodeURIComponent(url)}&name=${encodeURIComponent(companyName + ' - CR Document')}`, '_blank');
   };
 
   if (loading) {
@@ -227,7 +222,7 @@ export default function PendingEmployersPage() {
 
                 {/* CR Document Button */}
                 <button
-                  onClick={() => viewCrDocument(employer.commercialRegistrationImageUrl)}
+                  onClick={() => viewCrDocument(employer.commercialRegistrationImageUrl, employer.employerProfile?.companyName || 'Company')}
                   className="w-full px-4 py-3 bg-dark-400 hover:bg-dark-300 border-2 border-brand-yellow/30 hover:border-brand-yellow rounded-lg text-brand-yellow font-semibold transition-all flex items-center justify-center gap-2"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
