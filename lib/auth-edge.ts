@@ -60,8 +60,9 @@ export async function generateTokenEdge(payload: JWTPayload): Promise<string> {
 /**
  * Get platform settings with caching (Edge Runtime compatible)
  * Uses fetch to call the API endpoint instead of direct database access
+ * @param requestUrl - Optional request URL to construct the API endpoint URL
  */
-export async function getPlatformSettingsEdge(): Promise<PlatformSettings> {
+export async function getPlatformSettingsEdge(requestUrl?: string): Promise<PlatformSettings> {
   const now = Date.now();
 
   // Return cached settings if still valid
@@ -70,9 +71,24 @@ export async function getPlatformSettingsEdge(): Promise<PlatformSettings> {
   }
 
   try {
-    // Fetch settings from API endpoint
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
-    const response = await fetch(`${baseUrl}/api/settings/public`, {
+    // Construct full URL from request URL if provided, otherwise use env var or skip fetch
+    let apiUrl: string;
+    if (requestUrl) {
+      const url = new URL(requestUrl);
+      apiUrl = `${url.origin}/api/settings/public`;
+    } else if (process.env.NEXT_PUBLIC_BASE_URL) {
+      apiUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/api/settings/public`;
+    } else {
+      // No URL available - return safe defaults without fetching
+      console.warn('Platform settings fetch skipped: No URL available in Edge Runtime');
+      return {
+        maintenanceMode: false,
+        allowNewRegistrations: true,
+        allowNewApplications: true,
+      };
+    }
+
+    const response = await fetch(apiUrl, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',

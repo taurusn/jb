@@ -61,7 +61,8 @@ export async function middleware(request: NextRequest) {
   }
 
   // Get platform settings (AFTER checking for settings API to prevent infinite loop)
-  const settings = await getPlatformSettingsEdge();
+  // Pass request.url so the function can construct the full API URL
+  const settings = await getPlatformSettingsEdge(request.url);
   if (isDevelopment) console.log('Platform settings:', settings);
 
   // Get token to check if user is admin (before enforcing maintenance mode)
