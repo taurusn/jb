@@ -512,14 +512,10 @@ export default function RegisterPage() {
                       className="w-full px-4 py-3 rounded-lg bg-dark-400 border-2 border-dark-300 text-brand-light font-medium transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-brand-yellow focus:border-brand-yellow hover:border-brand-yellow/50 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <option value="">Select industry</option>
-                      <option value="Technology">Technology</option>
-                      <option value="Finance">Finance</option>
-                      <option value="Healthcare">Healthcare</option>
-                      <option value="Education">Education</option>
-                      <option value="Manufacturing">Manufacturing</option>
-                      <option value="Retail">Retail</option>
-                      <option value="Consulting">Consulting</option>
-                      <option value="Other">Other</option>
+                      <option value="Restaurant">Restaurant</option>
+                      <option value="Cafe">Cafe</option>
+                      <option value="Cafe and Bakery">Cafe and Bakery</option>
+                      <option value="Bakery">Bakery</option>
                     </select>
                   </div>
                 </div>

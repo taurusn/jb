@@ -6,10 +6,86 @@ import { Button, Input, FileUpload, Navbar, SkillSelector } from '@/components';
 import { useEmployeeForm } from '@/features/employee/useEmployeeForm';
 import AvailabilitySelector from '@/components/interview/AvailabilitySelector';
 
+// Translations
+const translations = {
+  ar: {
+    applyInMinutes: 'قدّم في دقائق',
+    landYourNext: 'احصل على فرصتك',
+    opportunity: 'القادمة',
+    simpleApplication: 'طلب واحد بسيط يربطك بأصحاب العمل الذين يبحثون بنشاط عن المواهب. لا عمليات معقدة، ولا نماذج لا نهاية لها.',
+    startApplication: 'ابدأ التقديم',
+    forEmployers: 'لأصحاب العمل',
+    applicationForm: 'نموذج التقديم',
+    step: 'الخطوة',
+    personalInfo: 'المعلومات الشخصية',
+    contactInfo: 'معلومات الاتصال',
+    skillsExperience: 'المهارات والخبرة',
+    documentsLegal: 'المستندات والأوراق القانونية',
+    availability: 'التوفر',
+    fullName: 'الاسم الكامل',
+    email: 'البريد الإلكتروني',
+    phone: 'رقم الهاتف',
+    city: 'المدينة',
+    nationality: 'الجنسية',
+    skills: 'المهارات',
+    experience: 'الخبرة',
+    resume: 'السيرة الذاتية',
+    profilePicture: 'الصورة الشخصية',
+    iqamaNumber: 'رقم الإقامة',
+    iqamaExpiry: 'تاريخ انتهاء الإقامة',
+    kafeelNumber: 'رقم الكفيل',
+    availableTimeSlots: 'الأوقات المتاحة',
+    previous: 'السابق',
+    next: 'التالي',
+    submitApplication: 'إرسال الطلب',
+    submittingApplication: 'جارٍ إرسال الطلب...',
+    optional: 'اختياري',
+    required: 'مطلوب'
+  },
+  en: {
+    applyInMinutes: 'Apply in Minutes',
+    landYourNext: 'Land Your Next',
+    opportunity: 'Opportunity',
+    simpleApplication: 'One simple application connects you with employers actively seeking talent. No complicated processes, no endless forms.',
+    startApplication: 'Start Application',
+    forEmployers: 'For Employers',
+    applicationForm: 'Application Form',
+    step: 'Step',
+    personalInfo: 'Personal Information',
+    contactInfo: 'Contact Information',
+    skillsExperience: 'Skills & Experience',
+    documentsLegal: 'Documents & Legal Info',
+    availability: 'Availability',
+    fullName: 'Full Name',
+    email: 'Email',
+    phone: 'Phone',
+    city: 'City',
+    nationality: 'Nationality',
+    skills: 'Skills',
+    experience: 'Experience',
+    resume: 'Resume/CV',
+    profilePicture: 'Profile Picture',
+    iqamaNumber: 'Iqama Number',
+    iqamaExpiry: 'Iqama Expiry Date',
+    kafeelNumber: 'Kafeel Number',
+    availableTimeSlots: 'Available Time Slots',
+    previous: 'Previous',
+    next: 'Next',
+    submitApplication: 'Submit Application',
+    submittingApplication: 'Submitting Application...',
+    optional: 'Optional',
+    required: 'Required'
+  }
+};
+
 export default function HomePage() {
   const { submitApplication, loading, error, success, clearError } = useEmployeeForm();
   const [applicationsAllowed, setApplicationsAllowed] = useState<boolean | null>(null);
   const [checkingSettings, setCheckingSettings] = useState(true);
+
+  // Language state (default to Arabic)
+  const [language, setLanguage] = useState<'ar' | 'en'>('ar');
+  const t = translations[language];
 
   // Multi-step form state
   const [currentStep, setCurrentStep] = useState(1);
@@ -272,8 +348,20 @@ export default function HomePage() {
   };
 
   return (
-    <div className="min-h-screen bg-brand-dark">
+    <div className="min-h-screen bg-brand-dark" dir={language === 'ar' ? 'rtl' : 'ltr'}>
       <Navbar />
+
+      {/* Language Toggle Button - Small, Floating */}
+      <button
+        onClick={() => setLanguage(language === 'ar' ? 'en' : 'ar')}
+        className="fixed top-24 right-4 z-50 flex items-center gap-2 px-3 py-2 bg-brand-yellow/10 hover:bg-brand-yellow/20 border border-brand-yellow/30 rounded-lg text-brand-yellow text-sm font-semibold transition-all duration-300 shadow-lg backdrop-blur-sm"
+        aria-label="Toggle Language"
+      >
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
+        </svg>
+        {language === 'ar' ? 'EN' : 'ع'}
+      </button>
 
       {/* Hero Section */}
       <section className="relative pt-24 sm:pt-28 lg:pt-32 pb-16 sm:pb-20 lg:pb-24 px-3 sm:px-4 overflow-hidden">
@@ -292,27 +380,27 @@ export default function HomePage() {
             {/* Left: Hero Content */}
             <div className="text-center lg:text-left animate-slide-down">
               <div className="inline-block mb-4 px-4 py-2 bg-brand-yellow/10 border border-brand-yellow/20 rounded-full">
-                <span className="text-xs sm:text-sm font-semibold text-brand-yellow">Apply in Minutes</span>
+                <span className="text-xs sm:text-sm font-semibold text-brand-yellow">{t.applyInMinutes}</span>
               </div>
 
               <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-display font-bold text-brand-light mb-4 sm:mb-6 leading-tight">
-                Land Your Next{' '}
-                <span className="text-gradient">Opportunity</span>
+                {t.landYourNext}{' '}
+                <span className="text-gradient">{t.opportunity}</span>
               </h1>
 
               <p className="text-base sm:text-lg md:text-xl text-gray-400 mb-6 sm:mb-8 max-w-xl mx-auto lg:mx-0">
-                One simple application connects you with employers actively seeking talent. No complicated processes, no endless forms.
+                {t.simpleApplication}
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
                 <a href="#application-form">
                   <Button variant="primary" size="lg" className="w-full sm:w-auto">
-                    Start Application
+                    {t.startApplication}
                   </Button>
                 </a>
                 <Link href="/employers">
                   <Button variant="outline" size="lg" className="w-full sm:w-auto">
-                    For Employers
+                    {t.forEmployers}
                   </Button>
                 </Link>
               </div>
@@ -466,10 +554,10 @@ export default function HomePage() {
                 {/* Header */}
                 <div className="text-center mb-6 sm:mb-8">
                   <h2 className="text-2xl sm:text-3xl lg:text-4xl font-display font-bold text-brand-light mb-2 sm:mb-3">
-                    Submit Your Application
+                    {t.applicationForm}
                   </h2>
                   <p className="text-sm sm:text-base text-gray-400">
-                    Step {currentStep} of {totalSteps}
+                    {t.step} {currentStep} {language === 'ar' ? 'من' : 'of'} {totalSteps}
                   </p>
                 </div>
 
@@ -602,12 +690,12 @@ export default function HomePage() {
                 </h3>
 
                 <Input
-                  label="Full Name"
+                  label={t.fullName}
                   type="text"
                   name="fullName"
                   value={formData.fullName}
                   onChange={handleInputChange}
-                  placeholder="John Doe"
+                  placeholder={language === 'ar' ? 'أحمد محمد' : 'John Doe'}
                   required
                   fullWidth
                   icon={
@@ -619,12 +707,12 @@ export default function HomePage() {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                   <Input
-                    label="Email Address (Optional)"
+                    label={`${t.email} (${t.optional})`}
                     type="email"
                     name="email"
                     value={formData.email}
                     onChange={handleInputChange}
-                    placeholder="john@example.com"
+                    placeholder={language === 'ar' ? 'ahmed@example.com' : 'john@example.com'}
                     fullWidth
                     icon={
                       <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -634,12 +722,12 @@ export default function HomePage() {
                   />
 
                   <Input
-                    label="Phone Number"
+                    label={t.phone}
                     type="tel"
                     name="phone"
                     value={formData.phone}
                     onChange={handleInputChange}
-                    placeholder="+1 (555) 000-0000"
+                    placeholder="+966 50 000 0000"
                     required
                     fullWidth
                     icon={
@@ -664,12 +752,12 @@ export default function HomePage() {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                   <Input
-                    label="City"
+                    label={t.city}
                     type="text"
                     name="city"
                     value={formData.city}
                     onChange={handleInputChange}
-                    placeholder="New York"
+                    placeholder={language === 'ar' ? 'الرياض' : 'Riyadh'}
                     required
                     fullWidth
                     icon={
@@ -681,12 +769,12 @@ export default function HomePage() {
                   />
 
                   <Input
-                    label="Nationality"
+                    label={t.nationality}
                     type="text"
                     name="nationality"
                     value={formData.nationality}
                     onChange={handleInputChange}
-                    placeholder="Saudi Arabian"
+                    placeholder={language === 'ar' ? 'سعودي' : 'Saudi Arabian'}
                     required
                     fullWidth
                     icon={
@@ -828,10 +916,21 @@ export default function HomePage() {
                     disabled={loading}
                     className="flex-1"
                   >
-                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                    </svg>
-                    Previous
+                    {language === 'ar' ? (
+                      <>
+                        {t.previous}
+                        <svg className="w-5 h-5 mr-2 rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                        </svg>
+                      </>
+                    ) : (
+                      <>
+                        <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                        </svg>
+                        {t.previous}
+                      </>
+                    )}
                   </Button>
                 )}
 
@@ -844,10 +943,21 @@ export default function HomePage() {
                     disabled={loading}
                     className={currentStep === 1 ? 'w-full' : 'flex-1'}
                   >
-                    Next
-                    <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
+                    {language === 'ar' ? (
+                      <>
+                        <svg className="w-5 h-5 ml-2 rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                        {t.next}
+                      </>
+                    ) : (
+                      <>
+                        {t.next}
+                        <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                      </>
+                    )}
                   </Button>
                 ) : (
                   <Button
@@ -857,8 +967,8 @@ export default function HomePage() {
                     loading={loading}
                     className="flex-1"
                   >
-                    <span className="hidden sm:inline">{loading ? 'Submitting Application...' : 'Submit Application'}</span>
-                    <span className="sm:hidden">{loading ? 'Submitting...' : 'Submit'}</span>
+                    <span className="hidden sm:inline">{loading ? t.submittingApplication : t.submitApplication}</span>
+                    <span className="sm:hidden">{loading ? (language === 'ar' ? 'جارٍ الإرسال...' : 'Submitting...') : (language === 'ar' ? 'إرسال' : 'Submit')}</span>
                   </Button>
                 )}
               </div>

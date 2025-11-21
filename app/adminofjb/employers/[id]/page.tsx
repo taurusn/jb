@@ -19,6 +19,9 @@ interface EmployerDetail {
     id: string;
     email: string;
     role: string;
+    commercialRegistrationNumber: string;
+    commercialRegistrationImageUrl: string;
+    status: string;
     createdAt: string;
     updatedAt: string;
   };
@@ -100,6 +103,11 @@ export default function EmployerDetailPage({
       alert('An error occurred while deleting employer');
       setDeleting(false);
     }
+  };
+
+  const viewCrDocument = (url: string, companyName: string) => {
+    // Use the document viewer page for consistent viewing experience
+    window.open(`/view-document?file=${encodeURIComponent(url)}&name=${encodeURIComponent(companyName + ' - CR Document')}`, '_blank');
   };
 
   if (loading) {
@@ -216,6 +224,39 @@ export default function EmployerDetailPage({
               </div>
             </div>
           </div>
+
+          {/* Commercial Registration (CR) Details */}
+          {employer.user.commercialRegistrationNumber && (
+            <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-6 hover:border-[#FEE715]/30 transition-all">
+              <div className="flex items-center gap-3 mb-6">
+                <span className="text-3xl">📄</span>
+                <h2 className="text-2xl font-bold text-white">Commercial Registration</h2>
+              </div>
+
+              <div className="space-y-4">
+                {/* CR Number */}
+                <div className="bg-white/5 rounded-lg p-4 border border-white/10">
+                  <label className="text-sm text-gray-400 block mb-2">CR Number</label>
+                  <p className="text-[#FEE715] font-mono text-lg font-semibold">
+                    {employer.user.commercialRegistrationNumber}
+                  </p>
+                </div>
+
+                {/* View CR Document Button */}
+                {employer.user.commercialRegistrationImageUrl && (
+                  <button
+                    onClick={() => viewCrDocument(employer.user.commercialRegistrationImageUrl, employer.companyName)}
+                    className="w-full px-6 py-4 bg-white/5 hover:bg-white/10 border-2 border-[#FEE715]/30 hover:border-[#FEE715] rounded-lg text-[#FEE715] font-semibold transition-all flex items-center justify-center gap-3 group"
+                  >
+                    <svg className="w-6 h-6 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    <span>View CR Document</span>
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* Account Information */}
           <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-6 hover:border-[#FEE715]/30 transition-all">
