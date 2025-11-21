@@ -2,7 +2,14 @@
   "permissions": {
     "allow": [
       "Bash(Select-Object Id, ProcessName, MainWindowTitle)",
-      "Bash(npm install:*)"
+      "Bash(npm install:*)",
+      "Bash(git merge:*)",
+      "Bash(git add:*)",
+      "Bash(git push:*)",
+      "Bash(git checkout:*)",
+      "Bash(npm run build:*)",
+      "Bash(git commit:*)",
+      "Bash(npx prisma migrate:*)"
     ],
     "deny": [],
     "ask": []

@@ -40,7 +40,12 @@ export const employeeApplicationSchema = z.object({
     .max(2000, 'Experience description is too long'),
   resumeUrl: z
     .string()
-    .min(1, 'Resume is required'),
+    .min(1, 'Resume URL is required')
+    .optional(),
+  videoUrl: z
+    .string()
+    .min(1, 'Video URL is required')
+    .optional(),
   profilePictureUrl: z
     .string()
     .min(1, 'Profile picture path is required')
@@ -60,7 +65,13 @@ export const employeeApplicationSchema = z.object({
     .string()
     .min(1, 'Kafeel number is required')
     .max(50, 'Kafeel number is too long'),
-});
+}).refine(
+  (data) => data.resumeUrl || data.videoUrl,
+  {
+    message: 'At least one of Resume or Video is required',
+    path: ['resumeUrl'],
+  }
+);
 
 export type EmployeeApplicationInput = z.infer<typeof employeeApplicationSchema>;
 

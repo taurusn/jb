@@ -74,7 +74,8 @@ model EmployeeApplication {
   nationality         String
   skills              String   @db.Text
   experience          String   @db.Text
-  resumeUrl           String   @map("resume_url")
+  resumeUrl           String?  @map("resume_url")              // Made optional - resume OR video required
+  videoUrl            String?  @map("video_url")               // New field - introduction video (optional)
   profilePictureUrl   String?  @map("profile_picture_url")
   submittedAt         DateTime @default(now()) @map("submitted_at")
 

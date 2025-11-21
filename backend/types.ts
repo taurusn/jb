@@ -85,7 +85,8 @@ export interface EmployeeApplicationData {
   nationality: string;
   skills: string;
   experience: string;
-  resumeUrl: string;
+  resumeUrl?: string | null;              // Made optional - resume OR video required
+  videoUrl?: string | null;               // New field - introduction video (optional)
   profilePictureUrl?: string | null;
   availableTimeSlots?: string | null; // JSON string of TimeSlot[]
   iqamaNumber: string;

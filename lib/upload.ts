@@ -7,6 +7,7 @@ import { fileTypeFromBuffer } from 'file-type';
 
 const UPLOAD_DIR = process.env.UPLOAD_DIR || 'public/uploads';
 const MAX_FILE_SIZE = parseInt(process.env.MAX_FILE_SIZE || '5242880'); // 5MB default
+const MAX_VIDEO_SIZE = parseInt(process.env.MAX_VIDEO_SIZE || '52428800'); // 50MB default for videos
 
 // Check storage providers (priority: Supabase > Cloudinary > Local)
 const hasCloudinary = !!(
@@ -31,6 +32,7 @@ export interface UploadResult {
 const ALLOWED_EXTENSIONS = {
   images: ['.jpg', '.jpeg', '.png', '.gif', '.webp'],
   documents: ['.pdf', '.doc', '.docx'],
+  videos: ['.mp4', '.webm', '.mov'],  // Supported video formats
 };
 
 /**
@@ -50,20 +52,25 @@ function generateUniqueFilename(originalName: string): string {
  */
 async function validateFile(
   file: File,
-  type: 'image' | 'document'
+  type: 'image' | 'document' | 'video'
 ): Promise<{ valid: boolean; error?: string }> {
-  // Check file size
-  if (file.size > MAX_FILE_SIZE) {
+  // Check file size based on type
+  const maxSize = type === 'video' ? MAX_VIDEO_SIZE : MAX_FILE_SIZE;
+  if (file.size > maxSize) {
     return {
       valid: false,
-      error: `File size exceeds ${MAX_FILE_SIZE / 1024 / 1024}MB limit`,
+      error: `File size exceeds ${maxSize / 1024 / 1024}MB limit`,
     };
   }
 
   // Check file extension
   const ext = path.extname(file.name).toLowerCase();
   const allowedExtensions =
-    type === 'image' ? ALLOWED_EXTENSIONS.images : ALLOWED_EXTENSIONS.documents;
+    type === 'image'
+      ? ALLOWED_EXTENSIONS.images
+      : type === 'video'
+      ? ALLOWED_EXTENSIONS.videos
+      : ALLOWED_EXTENSIONS.documents;
 
   if (!allowedExtensions.includes(ext)) {
     return {
@@ -103,6 +110,9 @@ async function validateFile(
       '.docx': [
         'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
       ],
+      '.mp4': ['video/mp4'],
+      '.webm': ['video/webm'],
+      '.mov': ['video/quicktime'],
     };
 
     const expectedMimeTypes = mimeTypeMap[ext];
@@ -129,7 +139,7 @@ async function validateFile(
  */
 export async function uploadFile(
   file: File,
-  type: 'image' | 'document' = 'image',
+  type: 'image' | 'document' | 'video' = 'image',
   subfolder: string = ''
 ): Promise<UploadResult> {
   try {
@@ -222,7 +232,7 @@ export async function uploadFile(
  */
 export async function uploadMultipleFiles(
   files: File[],
-  type: 'image' | 'document' = 'image',
+  type: 'image' | 'document' | 'video' = 'image',
   subfolder: string = ''
 ): Promise<UploadResult[]> {
   return Promise.all(files.map((file) => uploadFile(file, type, subfolder)));
