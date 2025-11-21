@@ -230,7 +230,8 @@ export async function getApplicantsWithRequestStatus(
       nationality: string;
       skills: string;
       experience: string;
-      resumeUrl: string;
+      resumeUrl: string | null;
+      videoUrl?: string | null;
       profilePictureUrl: string | null;
       submittedAt: Date;
       iqamaNumber: string;
