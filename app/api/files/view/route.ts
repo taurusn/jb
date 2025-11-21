@@ -199,6 +199,12 @@ export async function GET(request: NextRequest) {
           contentType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
         } else if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(fileExtension.toLowerCase())) {
           contentType = `image/${fileExtension.toLowerCase() === 'jpg' ? 'jpeg' : fileExtension.toLowerCase()}`;
+        } else if (fileExtension.toLowerCase() === 'mp4') {
+          contentType = 'video/mp4';
+        } else if (fileExtension.toLowerCase() === 'webm') {
+          contentType = 'video/webm';
+        } else if (fileExtension.toLowerCase() === 'mov') {
+          contentType = 'video/quicktime';
         }
 
         console.log('✅ Successfully downloaded private file from Supabase');
@@ -256,6 +262,12 @@ export async function GET(request: NextRequest) {
           contentType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
         } else if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(fileExtension.toLowerCase())) {
           contentType = `image/${fileExtension.toLowerCase() === 'jpg' ? 'jpeg' : fileExtension.toLowerCase()}`;
+        } else if (fileExtension.toLowerCase() === 'mp4') {
+          contentType = 'video/mp4';
+        } else if (fileExtension.toLowerCase() === 'webm') {
+          contentType = 'video/webm';
+        } else if (fileExtension.toLowerCase() === 'mov') {
+          contentType = 'video/quicktime';
         }
 
         console.log('✅ Successfully proxied Supabase file');
@@ -342,6 +354,12 @@ export async function GET(request: NextRequest) {
           contentType = 'application/msword';
         } else if (fileExtension === 'docx') {
           contentType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+        } else if (fileExtension.toLowerCase() === 'mp4') {
+          contentType = 'video/mp4';
+        } else if (fileExtension.toLowerCase() === 'webm') {
+          contentType = 'video/webm';
+        } else if (fileExtension.toLowerCase() === 'mov') {
+          contentType = 'video/quicktime';
         }
 
         console.log('✅ Successfully proxied Cloudinary file');
@@ -410,6 +428,12 @@ export async function GET(request: NextRequest) {
       contentType = 'application/msword';
     } else if (fileExt === '.docx') {
       contentType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+    } else if (fileExt === '.mp4') {
+      contentType = 'video/mp4';
+    } else if (fileExt === '.webm') {
+      contentType = 'video/webm';
+    } else if (fileExt === '.mov') {
+      contentType = 'video/quicktime';
     }
 
     // Return file with appropriate headers

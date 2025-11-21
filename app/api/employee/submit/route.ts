@@ -143,13 +143,16 @@ export async function POST(request: NextRequest) {
 
     // Handle file uploads
     const resumeFile = formData.get('resume') as File | null;
+    const videoFile = formData.get('video') as File | null;
     const profilePictureFile = formData.get('profilePicture') as File | null;
 
     console.log('\nFile uploads:');
     console.log('  resume:', resumeFile ? `File(${resumeFile.name}, ${resumeFile.size} bytes)` : 'null');
+    console.log('  video:', videoFile ? `File(${videoFile.name}, ${videoFile.size} bytes)` : 'null');
     console.log('  profilePicture:', profilePictureFile ? `File(${profilePictureFile.name}, ${profilePictureFile.size} bytes)` : 'null');
 
     let resumeUrl = '';
+    let videoUrl = '';
     let profilePictureUrl = '';
 
     // Upload resume if provided
@@ -159,6 +162,16 @@ export async function POST(request: NextRequest) {
       console.log('  Resume upload result:', resumeUpload);
       if (resumeUpload.success && resumeUpload.url) {
         resumeUrl = resumeUpload.url;
+      }
+    }
+
+    // Upload video if provided
+    if (videoFile && videoFile.size > 0) {
+      console.log('\nUploading video...');
+      const videoUpload = await uploadFile(videoFile, 'video', 'videos');
+      console.log('  Video upload result:', videoUpload);
+      if (videoUpload.success && videoUpload.url) {
+        videoUrl = videoUpload.url;
       }
     }
 
@@ -174,6 +187,7 @@ export async function POST(request: NextRequest) {
 
     console.log('\nFinal URLs:');
     console.log('  resumeUrl:', resumeUrl);
+    console.log('  videoUrl:', videoUrl);
     console.log('  profilePictureUrl:', profilePictureUrl);
 
     // Prepare data
@@ -185,7 +199,8 @@ export async function POST(request: NextRequest) {
       nationality,
       skills,
       experience,
-      resumeUrl,
+      ...(resumeUrl && { resumeUrl }), // Only include if not empty
+      ...(videoUrl && { videoUrl }), // Only include if not empty
       ...(profilePictureUrl && { profilePictureUrl }), // Only include if not empty
       ...(availableTimeSlots && { availableTimeSlots }), // Interview availability
       iqamaNumber,

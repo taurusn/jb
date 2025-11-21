@@ -9,9 +9,14 @@ function ViewDocumentContent() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
+
   const fileUrl = searchParams.get('file');
   const candidateName = searchParams.get('name') || 'Candidate';
+  const fileType = searchParams.get('type') || 'document'; // 'document' or 'video'
+
+  // Determine if it's a video based on file extension or type parameter
+  const isVideo = fileType === 'video' ||
+    fileUrl?.match(/\.(mp4|webm|mov)$/i) !== null;
 
   useEffect(() => {
     if (!fileUrl) {
@@ -85,9 +90,9 @@ function ViewDocumentContent() {
       <header className="bg-dark-400 border-b border-dark-300 px-2 sm:px-4 py-2 sm:py-3">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <h1 className="text-sm sm:text-lg font-semibold text-brand-light truncate">
-            {candidateName}'s Resume
+            {candidateName}'s {isVideo ? 'Video' : 'Resume'}
           </h1>
-          
+
           <Button
             onClick={handleDownload}
             variant="outline"
@@ -102,23 +107,42 @@ function ViewDocumentContent() {
         </div>
       </header>
 
-      {/* Document Viewer */}
+      {/* Document/Video Viewer */}
       <div className="flex-1 p-1 sm:p-4">
         <div className="w-full h-full">
-          <div className="bg-white rounded-none sm:rounded-lg shadow-2xl overflow-hidden h-full" style={{ height: 'calc(100vh - 60px)' }}>
+          <div className={`${isVideo ? 'bg-black' : 'bg-white'} rounded-none sm:rounded-lg shadow-2xl overflow-hidden h-full`} style={{ height: 'calc(100vh - 60px)' }}>
             {fileUrl && (
-              <iframe
-                src={`/api/files/view?file=${encodeURIComponent(fileUrl)}`}
-                className="w-full h-full border-0"
-                title={`${candidateName}'s Resume`}
-                onLoad={() => setLoading(false)}
-                onError={() => setError('Failed to load document')}
-                style={{
-                  transform: 'scale(1)',
-                  transformOrigin: 'top left',
-                  minHeight: '100%'
-                }}
-              />
+              isVideo ? (
+                // Video Player
+                <video
+                  src={`/api/files/view?file=${encodeURIComponent(fileUrl)}`}
+                  className="w-full h-full"
+                  controls
+                  controlsList="nodownload" // Prevent direct download from video controls
+                  onLoadedData={() => setLoading(false)}
+                  onError={() => setError('Failed to load video')}
+                  style={{
+                    maxHeight: '100%',
+                    objectFit: 'contain'
+                  }}
+                >
+                  Your browser does not support the video tag.
+                </video>
+              ) : (
+                // Document Viewer (iframe)
+                <iframe
+                  src={`/api/files/view?file=${encodeURIComponent(fileUrl)}`}
+                  className="w-full h-full border-0"
+                  title={`${candidateName}'s Resume`}
+                  onLoad={() => setLoading(false)}
+                  onError={() => setError('Failed to load document')}
+                  style={{
+                    transform: 'scale(1)',
+                    transformOrigin: 'top left',
+                    minHeight: '100%'
+                  }}
+                />
+              )
             )}
           </div>
         </div>

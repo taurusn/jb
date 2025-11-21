@@ -30,6 +30,10 @@ const translations = {
     skills: 'المهارات',
     experience: 'الخبرة',
     resume: 'السيرة الذاتية',
+    video: 'فيديو تعريفي',
+    uploadResumeOrVideo: 'يجب رفع السيرة الذاتية أو الفيديو (أو كليهما)',
+    videoHelper: 'حد أقصى 50 ميجابايت - MP4, WebM, MOV',
+    resumeHelper: 'PDF, DOC, DOCX - حد أقصى 5 ميجابايت',
     profilePicture: 'الصورة الشخصية',
     iqamaNumber: 'رقم الإقامة',
     iqamaExpiry: 'تاريخ انتهاء الإقامة',
@@ -64,6 +68,10 @@ const translations = {
     skills: 'Skills',
     experience: 'Experience',
     resume: 'Resume/CV',
+    video: 'Introduction Video',
+    uploadResumeOrVideo: 'Upload Resume or Video (or both)',
+    videoHelper: 'Max 50MB - MP4, WebM, MOV',
+    resumeHelper: 'PDF, DOC, DOCX - Max 5MB',
     profilePicture: 'Profile Picture',
     iqamaNumber: 'Iqama Number',
     iqamaExpiry: 'Iqama Expiry Date',
@@ -105,6 +113,7 @@ export default function HomePage() {
   });
 
   const [resumeFile, setResumeFile] = useState<File | null>(null);
+  const [videoFile, setVideoFile] = useState<File | null>(null);
   const [profilePicture, setProfilePicture] = useState<File | null>(null);
   const [availability, setAvailability] = useState<string | null>(null);
   const [validationError, setValidationError] = useState<string | null>(null);
@@ -140,6 +149,14 @@ export default function HomePage() {
   const handleResumeChange = (files: File[]) => {
     if (files.length > 0) {
       setResumeFile(files[0]);
+    }
+    setValidationError(null);
+    clearError();
+  };
+
+  const handleVideoChange = (files: File[]) => {
+    if (files.length > 0) {
+      setVideoFile(files[0]);
     }
     setValidationError(null);
     clearError();
@@ -270,8 +287,8 @@ export default function HomePage() {
         return true;
 
       case 5: // Upload Documents
-        if (!resumeFile) {
-          setValidationError('Please upload your resume/CV');
+        if (!resumeFile && !videoFile) {
+          setValidationError(t.uploadResumeOrVideo);
           return false;
         }
 
@@ -342,6 +359,7 @@ export default function HomePage() {
     await submitApplication({
       ...formData,
       resume: resumeFile,
+      video: videoFile || undefined,
       profilePicture: profilePicture || undefined,
       availableTimeSlots: availability || undefined,
     });
@@ -846,24 +864,41 @@ export default function HomePage() {
                   <span className="w-7 h-7 sm:w-8 sm:h-8 bg-brand-yellow rounded-full flex items-center justify-center text-brand-dark text-xs sm:text-sm font-bold flex-shrink-0">
                     5
                   </span>
-                  Upload Documents
+                  {t.documentsLegal}
                 </h3>
 
+                {/* At least one required message */}
+                {!resumeFile && !videoFile && (
+                  <div className="bg-brand-yellow/10 border border-brand-yellow/30 rounded-lg p-3 text-sm text-brand-yellow flex items-start gap-2">
+                    <svg className="w-5 h-5 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span>{t.uploadResumeOrVideo}</span>
+                  </div>
+                )}
+
                 <FileUpload
-                  label="Resume / CV"
+                  label={`${t.resume} (${t.optional})`}
                   accept=".pdf,.doc,.docx"
                   maxSize={5}
-                  required
                   onChange={handleResumeChange}
-                  helperText="Accepted formats: PDF, DOC, DOCX (Max 5MB)"
+                  helperText={t.resumeHelper}
                 />
 
                 <FileUpload
-                  label="Profile Picture (Optional)"
+                  label={`${t.video} (${t.optional})`}
+                  accept=".mp4,.webm,.mov"
+                  maxSize={50}
+                  onChange={handleVideoChange}
+                  helperText={t.videoHelper}
+                />
+
+                <FileUpload
+                  label={`${t.profilePicture} (${t.optional})`}
                   accept=".jpg,.jpeg,.png"
                   maxSize={2}
                   onChange={handleProfilePictureChange}
-                  helperText="Accepted formats: JPG, PNG (Max 2MB)"
+                  helperText="JPG, PNG - Max 2MB"
                 />
 
                 <div className="pt-4 border-t border-gray-700">

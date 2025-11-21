@@ -12,6 +12,7 @@ export interface EmployeeFormData {
   skills: string | string[]; // Accept both string and array formats
   experience: string;
   resume: File | null;
+  video?: File | null; // Optional video - at least one of resume or video required
   profilePicture?: File | null;
   availableTimeSlots?: string; // JSON string of availability
   iqamaNumber: string;
@@ -44,8 +45,8 @@ export const useEmployeeForm = (): UseEmployeeFormReturn => {
         throw new Error('Please fill in all required fields');
       }
 
-      if (!data.resume) {
-        throw new Error('Please upload your resume');
+      if (!data.resume && !data.video) {
+        throw new Error('Please upload your resume or video (or both)');
       }
 
       if (!data.iqamaNumber || !data.iqamaExpiryDate || !data.kafeelNumber) {
@@ -63,7 +64,8 @@ export const useEmployeeForm = (): UseEmployeeFormReturn => {
       const skillsString = Array.isArray(data.skills) ? data.skills.join(', ') : data.skills;
       formData.append('skills', skillsString);
       formData.append('experience', data.experience);
-      formData.append('resume', data.resume);
+      if (data.resume) formData.append('resume', data.resume);
+      if (data.video) formData.append('video', data.video);
       if (data.profilePicture) formData.append('profilePicture', data.profilePicture);
       if (data.availableTimeSlots) formData.append('availableTimeSlots', data.availableTimeSlots);
       formData.append('iqamaNumber', data.iqamaNumber);

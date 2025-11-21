@@ -14,6 +14,7 @@ interface Candidate {
   skills: string; // TEXT field, not array
   experience: string; // TEXT field
   resumeUrl: string | null;
+  videoUrl?: string | null;
   profilePictureUrl: string | null;
   submittedAt: string;
   _count: {

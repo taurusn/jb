@@ -16,6 +16,7 @@ interface CandidateDetail {
   availableTimeSlots: string | null;
   profilePictureUrl: string | null;
   resumeUrl: string | null;
+  videoUrl?: string | null;
   submittedAt: string;
   employeeRequests: {
     id: string;
@@ -334,6 +335,45 @@ export default function CandidateDetailPage({
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
                   Download CV
+                </a>
+              </div>
+            </div>
+          )}
+
+          {/* Video View/Download */}
+          {candidate.videoUrl && (
+            <div className="glass border-brand-yellow/20 rounded-xl p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <svg className="w-6 h-6 text-brand-yellow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <h2 className="text-2xl font-display font-bold text-brand-light">Introduction Video</h2>
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-3">
+                <a
+                  href={`/view-document?file=${encodeURIComponent(candidate.videoUrl)}&name=${encodeURIComponent(candidate.fullName)}&type=video`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 bg-brand-yellow text-brand-dark rounded-lg font-semibold hover:bg-brand-yellow/90 transition-all transform hover:scale-105"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  Watch Video
+                </a>
+
+                <a
+                  href={`/api/files/view?file=${encodeURIComponent(candidate.videoUrl)}`}
+                  download
+                  className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 bg-dark-400 border-2 border-brand-yellow/30 text-brand-yellow rounded-lg font-semibold hover:bg-dark-300 hover:border-brand-yellow/50 transition-all"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  Download Video
                 </a>
               </div>
             </div>
