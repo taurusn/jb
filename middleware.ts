@@ -21,9 +21,13 @@ import { verifyTokenEdge, getPlatformSettingsEdge } from '@/lib/auth-edge';
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  console.log('=== MIDDLEWARE DEBUG ===');
-  console.log('Path:', pathname);
-  console.log('Cookies:', request.cookies.getAll());
+  // Development-only debug logging
+  const isDevelopment = process.env.NODE_ENV === 'development';
+
+  if (isDevelopment) {
+    console.log('=== MIDDLEWARE DEBUG ===');
+    console.log('Path:', pathname);
+  }
 
   // Exclude login and maintenance pages from special handling
   const isLoginPage = pathname === '/login' || pathname === '/adminofjb/login';
@@ -38,30 +42,27 @@ export async function middleware(request: NextRequest) {
 
   const requiresAuth = isEmployerRoute || isEmployerApiRoute || isAdminRoute || isAdminApiRoute;
 
-  console.log('Requires auth:', requiresAuth);
-  console.log('Is admin route:', isAdminRoute || isAdminApiRoute);
-
   // Allow public settings API FIRST (prevent infinite loop)
   if (isPublicSettingsApi) {
-    console.log('Public settings API - no auth required, skipping');
+    if (isDevelopment) console.log('Public settings API - no auth required, skipping');
     return NextResponse.next();
   }
 
   // Allow login pages
   if (isLoginPage) {
-    console.log('Login page - no auth required');
+    if (isDevelopment) console.log('Login page - no auth required');
     return NextResponse.next();
   }
 
   // Allow maintenance page access
   if (isMaintenancePage) {
-    console.log('Maintenance page - allowing access');
+    if (isDevelopment) console.log('Maintenance page - allowing access');
     return NextResponse.next();
   }
 
   // Get platform settings (AFTER checking for settings API to prevent infinite loop)
   const settings = await getPlatformSettingsEdge();
-  console.log('Platform settings:', settings);
+  if (isDevelopment) console.log('Platform settings:', settings);
 
   // Get token to check if user is admin (before enforcing maintenance mode)
   const token = request.cookies.get('token')?.value;
@@ -74,21 +75,23 @@ export async function middleware(request: NextRequest) {
 
   // Enforce maintenance mode for non-admin users
   if (settings.maintenanceMode && !isAdmin) {
-    console.log('Maintenance mode active - redirecting to /maintenance');
+    if (isDevelopment) console.log('Maintenance mode active - redirecting to /maintenance');
     return NextResponse.redirect(new URL('/maintenance', request.url));
   }
 
   if (!requiresAuth) {
-    console.log('No auth required, passing through');
+    if (isDevelopment) console.log('No auth required, passing through');
     return NextResponse.next();
   }
 
-  console.log('Token found:', !!token);
-  console.log('Token value (first 20 chars):', token?.substring(0, 20));
+  if (isDevelopment) {
+    console.log('Token found:', !!token);
+    console.log('Token value (first 20 chars):', token?.substring(0, 20));
+  }
 
   // If no token, redirect to login (for pages) or return 401 (for API)
   if (!token) {
-    console.log('No token - redirecting to login');
+    if (isDevelopment) console.log('No token - redirecting to login');
     if (isEmployerApiRoute || isAdminApiRoute) {
       return NextResponse.json(
         { success: false, error: 'Unauthorized - No token provided' },
@@ -107,8 +110,10 @@ export async function middleware(request: NextRequest) {
   // Verify token
   const decoded = await verifyTokenEdge(token);
 
-  console.log('Token decoded:', !!decoded);
-  console.log('User:', decoded);
+  if (isDevelopment) {
+    console.log('Token decoded:', !!decoded);
+    console.log('User:', decoded);
+  }
 
   if (!decoded) {
     // Invalid token

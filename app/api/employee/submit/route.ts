@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { handleEmployeeSubmission } from '@/backend/controllers/employee.controller';
 import { uploadFile } from '@/lib/upload';
 import { prisma as db } from '@/lib/db';
+import { checkRateLimit, rateLimitConfigs, getClientIdentifier } from '@/lib/rate-limit';
 
 /**
  * @openapi
@@ -53,11 +54,36 @@ import { prisma as db } from '@/lib/db';
  *         description: Validation error
  *       403:
  *         description: Applications are currently closed
+ *       429:
+ *         description: Too many requests
  *       500:
  *         description: Internal server error
  */
 export async function POST(request: NextRequest) {
   try {
+    // Rate limiting: 3 submissions per hour (prevent spam)
+    const identifier = getClientIdentifier(request);
+    const rateLimit = checkRateLimit(`submit:${identifier}`, rateLimitConfigs.employeeSubmit);
+
+    if (!rateLimit.success) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Too many application submissions. Please try again later.',
+          retryAfter: Math.ceil((rateLimit.reset - Date.now()) / 1000),
+        },
+        {
+          status: 429,
+          headers: {
+            'Retry-After': String(Math.ceil((rateLimit.reset - Date.now()) / 1000)),
+            'X-RateLimit-Limit': String(rateLimit.limit),
+            'X-RateLimit-Remaining': String(rateLimit.remaining),
+            'X-RateLimit-Reset': String(rateLimit.reset),
+          },
+        }
+      );
+    }
+
     // Check if applications are allowed
     const settings = await db.platformSettings.findFirst({
       where: { id: 'default' },
@@ -76,13 +102,16 @@ export async function POST(request: NextRequest) {
 
     const formData = await request.formData();
 
-    console.log('=== FORM SUBMISSION DEBUG ===');
-    console.log('FormData entries:');
-    for (const [key, value] of formData.entries()) {
-      if (value instanceof File) {
-        console.log(`  ${key}: File(name="${value.name}", size=${value.size}, type="${value.type}")`);
-      } else {
-        console.log(`  ${key}: "${value}"`);
+    // Development-only debug logging
+    if (process.env.NODE_ENV === 'development') {
+      console.log('=== FORM SUBMISSION DEBUG ===');
+      console.log('FormData entries:');
+      for (const [key, value] of formData.entries()) {
+        if (value instanceof File) {
+          console.log(`  ${key}: File(name="${value.name}", size=${value.size}, type="${value.type}")`);
+        } else {
+          console.log(`  ${key}: "${value}"`);
+        }
       }
     }
 

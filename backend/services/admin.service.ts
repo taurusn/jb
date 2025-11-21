@@ -373,10 +373,25 @@ export async function getRequestById(id: string) {
       throw new Error('Request not found');
     }
 
-    // Parse adminNotes if exists
+    // Parse adminNotes if exists (with error handling)
+    let adminNotes = [];
+    if (request.adminNotes) {
+      try {
+        adminNotes = JSON.parse(request.adminNotes);
+        // Validate it's an array
+        if (!Array.isArray(adminNotes)) {
+          console.warn(`Invalid adminNotes format for request ${id}. Expected array, got:`, typeof adminNotes);
+          adminNotes = [];
+        }
+      } catch (parseError) {
+        console.error(`Failed to parse adminNotes for request ${id}:`, parseError);
+        adminNotes = [];
+      }
+    }
+
     const parsedRequest = {
       ...request,
-      adminNotes: request.adminNotes ? JSON.parse(request.adminNotes) : [],
+      adminNotes,
     };
 
     return parsedRequest;
@@ -422,9 +437,22 @@ export async function addAdminNote(
       throw new Error('Request not found');
     }
 
-    const existingNotes = request.adminNotes
-      ? JSON.parse(request.adminNotes)
-      : [];
+    // Parse existing notes with error handling
+    let existingNotes = [];
+    if (request.adminNotes) {
+      try {
+        existingNotes = JSON.parse(request.adminNotes);
+        // Validate it's an array
+        if (!Array.isArray(existingNotes)) {
+          console.warn(`Invalid adminNotes format for request ${id}. Resetting to empty array.`);
+          existingNotes = [];
+        }
+      } catch (parseError) {
+        console.error(`Failed to parse existing adminNotes for request ${id}:`, parseError);
+        existingNotes = [];
+      }
+    }
+
     const newNote = {
       text: note,
       adminEmail,

@@ -3,6 +3,7 @@ import path from 'path';
 import { existsSync } from 'fs';
 import { uploadToCloudinary } from './cloudinary';
 import { uploadToSupabase, hasSupabaseStorage } from './supabase-storage';
+import { fileTypeFromBuffer } from 'file-type';
 
 const UPLOAD_DIR = process.env.UPLOAD_DIR || 'public/uploads';
 const MAX_FILE_SIZE = parseInt(process.env.MAX_FILE_SIZE || '5242880'); // 5MB default
@@ -45,9 +46,12 @@ function generateUniqueFilename(originalName: string): string {
 }
 
 /**
- * Validate file
+ * Validate file extension and magic bytes
  */
-function validateFile(file: File, type: 'image' | 'document'): { valid: boolean; error?: string } {
+async function validateFile(
+  file: File,
+  type: 'image' | 'document'
+): Promise<{ valid: boolean; error?: string }> {
   // Check file size
   if (file.size > MAX_FILE_SIZE) {
     return {
@@ -68,7 +72,56 @@ function validateFile(file: File, type: 'image' | 'document'): { valid: boolean;
     };
   }
 
-  return { valid: true };
+  // Magic byte validation (verify file content matches extension)
+  try {
+    const bytes = await file.arrayBuffer();
+    const buffer = Buffer.from(bytes);
+    const fileType = await fileTypeFromBuffer(buffer);
+
+    if (!fileType) {
+      // Some file types (like plain text) may not have magic bytes
+      // Allow certain extensions without magic bytes
+      const allowedWithoutMagic = ['.txt', '.csv'];
+      if (!allowedWithoutMagic.includes(ext)) {
+        return {
+          valid: false,
+          error: 'Unable to verify file type. File may be corrupted.',
+        };
+      }
+      return { valid: true };
+    }
+
+    // Expected MIME types for each extension
+    const mimeTypeMap: Record<string, string[]> = {
+      '.jpg': ['image/jpeg'],
+      '.jpeg': ['image/jpeg'],
+      '.png': ['image/png'],
+      '.gif': ['image/gif'],
+      '.webp': ['image/webp'],
+      '.pdf': ['application/pdf'],
+      '.doc': ['application/msword'],
+      '.docx': [
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      ],
+    };
+
+    const expectedMimeTypes = mimeTypeMap[ext];
+
+    if (!expectedMimeTypes || !expectedMimeTypes.includes(fileType.mime)) {
+      return {
+        valid: false,
+        error: `File content does not match extension. Expected ${ext} but got ${fileType.mime}`,
+      };
+    }
+
+    return { valid: true };
+  } catch (error) {
+    console.error('Magic byte validation error:', error);
+    return {
+      valid: false,
+      error: 'File validation failed. Please try again.',
+    };
+  }
 }
 
 /**
@@ -80,8 +133,8 @@ export async function uploadFile(
   subfolder: string = ''
 ): Promise<UploadResult> {
   try {
-    // Validate file
-    const validation = validateFile(file, type);
+    // Validate file (extension + magic bytes)
+    const validation = await validateFile(file, type);
     if (!validation.valid) {
       return { success: false, error: validation.error };
     }

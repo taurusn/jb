@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { handleRegister } from '@/backend/controllers/auth.controller';
 import { prisma as db } from '@/lib/db';
+import { checkRateLimit, rateLimitConfigs, getClientIdentifier } from '@/lib/rate-limit';
 
 /**
  * @openapi
@@ -50,11 +51,36 @@ import { prisma as db } from '@/lib/db';
  *         description: Validation error or email already exists
  *       403:
  *         description: Registrations are currently closed
+ *       429:
+ *         description: Too many requests
  *       500:
  *         description: Internal server error
  */
 export async function POST(request: NextRequest) {
   try {
+    // Rate limiting: 3 registrations per hour
+    const identifier = getClientIdentifier(request);
+    const rateLimit = checkRateLimit(`register:${identifier}`, rateLimitConfigs.register);
+
+    if (!rateLimit.success) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Too many registration attempts. Please try again later.',
+          retryAfter: Math.ceil((rateLimit.reset - Date.now()) / 1000),
+        },
+        {
+          status: 429,
+          headers: {
+            'Retry-After': String(Math.ceil((rateLimit.reset - Date.now()) / 1000)),
+            'X-RateLimit-Limit': String(rateLimit.limit),
+            'X-RateLimit-Remaining': String(rateLimit.remaining),
+            'X-RateLimit-Reset': String(rateLimit.reset),
+          },
+        }
+      );
+    }
+
     // Check if registrations are allowed
     const settings = await db.platformSettings.findFirst({
       where: { id: 'default' },
