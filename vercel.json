@@ -2,5 +2,22 @@
   "buildCommand": "npm run build:vercel",
   "env": {
     "PRISMA_GENERATE_SKIP_AUTOINSTALL": "true"
-  }
+  },
+  "functions": {
+    "app/api/employee/submit/route.ts": {
+      "maxDuration": 60,
+      "memory": 1024
+    }
+  },
+  "headers": [
+    {
+      "source": "/api/employee/submit",
+      "headers": [
+        {
+          "key": "Content-Length",
+          "value": "104857600"
+        }
+      ]
+    }
+  ]
 }

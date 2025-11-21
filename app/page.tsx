@@ -32,7 +32,7 @@ const translations = {
     resume: 'السيرة الذاتية',
     video: 'فيديو تعريفي',
     uploadResumeOrVideo: 'يجب رفع السيرة الذاتية أو الفيديو (أو كليهما)',
-    videoHelper: 'حد أقصى 50 ميجابايت - MP4, WebM, MOV',
+    videoHelper: 'حد أقصى 100 ميجابايت - MP4, WebM, MOV (حوالي دقيقتين)',
     resumeHelper: 'PDF, DOC, DOCX - حد أقصى 5 ميجابايت',
     profilePicture: 'الصورة الشخصية',
     iqamaNumber: 'رقم الإقامة',
@@ -70,7 +70,7 @@ const translations = {
     resume: 'Resume/CV',
     video: 'Introduction Video',
     uploadResumeOrVideo: 'Upload Resume or Video (or both)',
-    videoHelper: 'Max 50MB - MP4, WebM, MOV',
+    videoHelper: 'Max 100MB - MP4, WebM, MOV (~2 minutes)',
     resumeHelper: 'PDF, DOC, DOCX - Max 5MB',
     profilePicture: 'Profile Picture',
     iqamaNumber: 'Iqama Number',
@@ -888,7 +888,7 @@ export default function HomePage() {
                 <FileUpload
                   label={`${t.video} (${t.optional})`}
                   accept=".mp4,.webm,.mov"
-                  maxSize={50}
+                  maxSize={100}
                   onChange={handleVideoChange}
                   helperText={t.videoHelper}
                 />
