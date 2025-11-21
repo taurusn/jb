@@ -332,11 +332,6 @@ export default function RegisterPage() {
 
       // Show success message (account is pending approval)
       setSuccessMessage(data.message || 'Registration successful! Your account is pending approval.');
-
-      // Redirect to login page after a short delay
-      setTimeout(() => {
-        router.push('/login');
-      }, 3000);
     } catch (err) {
       const error = err as Error;
       setError(error.message);
@@ -345,6 +340,183 @@ export default function RegisterPage() {
       setUploadingCr(false);
     }
   };
+
+  // If registration was successful, show success screen
+  if (successMessage) {
+    return (
+      <div className="min-h-screen bg-brand-dark font-arabic" dir="rtl">
+        <Navbar />
+
+        <div className="flex items-center justify-center px-4 py-12 sm:py-16 lg:py-20 relative overflow-hidden">
+          {/* Background Effects */}
+          <div className="absolute inset-0 pointer-events-none">
+            <div className="absolute top-20 left-20 w-96 h-96 bg-brand-yellow/10 rounded-full blur-3xl animate-float"></div>
+            <div className="absolute bottom-20 right-20 w-96 h-96 bg-brand-yellow/5 rounded-full blur-3xl animate-pulse-slow"></div>
+          </div>
+
+          <div className="max-w-3xl w-full relative z-10">
+            {/* Success Icon */}
+            <div className="text-center mb-8 animate-bounce-in">
+              <div className="inline-flex items-center justify-center w-24 h-24 bg-brand-yellow rounded-full mb-6 shadow-yellow-glow-lg">
+                <svg
+                  className="w-12 h-12 text-brand-dark"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={3}
+                    d="M5 13l4 4L19 7"
+                  />
+                </svg>
+              </div>
+
+              <h1 className="text-3xl sm:text-4xl md:text-5xl font-display font-bold text-brand-light mb-3">
+                تم استلام طلبك بنجاح!
+              </h1>
+
+              <p className="text-lg sm:text-xl text-gray-400">
+                سيتم مراجعة حسابك قريبًا
+              </p>
+            </div>
+
+            {/* Confirmation Card */}
+            <div className="glass rounded-2xl p-6 sm:p-8 shadow-dark-elevation mb-6 animate-slide-up">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 bg-accent-green/20 rounded-full flex items-center justify-center">
+                  <svg className="w-6 h-6 text-accent-green" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <h2 className="text-xl font-semibold text-brand-light">تأكيد التسجيل</h2>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                <div className="flex items-center gap-2">
+                  <svg className="w-5 h-5 text-accent-green flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span className="text-gray-400">تم استلام البيانات</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <svg className="w-5 h-5 text-accent-green flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span className="text-gray-400">تم رفع السجل التجاري</span>
+                </div>
+              </div>
+            </div>
+
+            {/* What Happens Next */}
+            <div className="glass rounded-2xl p-6 sm:p-8 shadow-dark-elevation mb-6 animate-slide-up" style={{ animationDelay: '100ms' }}>
+              <h2 className="text-xl font-semibold text-brand-light mb-6 flex items-center gap-3">
+                <span className="text-2xl">🚀</span>
+                ماذا سيحدث الآن؟
+              </h2>
+
+              <div className="space-y-5">
+                <div className="flex gap-4">
+                  <div className="flex-shrink-0 w-10 h-10 bg-brand-yellow/20 rounded-full flex items-center justify-center text-brand-yellow font-bold text-sm">
+                    1
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-brand-light mb-1 text-base">مراجعة الطلب</h3>
+                    <p className="text-gray-400 text-sm">
+                      سيقوم فريقنا بمراجعة بياناتك والتأكد من صحة السجل التجاري
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex gap-4">
+                  <div className="flex-shrink-0 w-10 h-10 bg-brand-yellow/20 rounded-full flex items-center justify-center text-brand-yellow font-bold text-sm">
+                    2
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-brand-light mb-1 text-base">الموافقة والتفعيل</h3>
+                    <p className="text-gray-400 text-sm">
+                      بعد الموافقة، ستتمكن من تسجيل الدخول والوصول إلى لوحة التحكم الخاصة بك
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex gap-4">
+                  <div className="flex-shrink-0 w-10 h-10 bg-brand-yellow/20 rounded-full flex items-center justify-center text-brand-yellow font-bold text-sm">
+                    3
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-brand-light mb-1 text-base">البدء في التوظيف</h3>
+                    <p className="text-gray-400 text-sm">
+                      تصفح السير الذاتية للمتقدمين واختر الموظفين المناسبين لمنشأتك
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Important Reminder */}
+            <div className="p-5 sm:p-6 bg-accent-orange/10 rounded-xl border border-accent-orange/30 mb-8 animate-slide-up" style={{ animationDelay: '200ms' }}>
+              <div className="flex items-start gap-3">
+                <svg className="w-6 h-6 text-accent-orange flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <div className="flex-1">
+                  <h4 className="text-accent-orange font-semibold mb-2 text-sm sm:text-base">ملاحظات هامة</h4>
+                  <ul className="space-y-2 text-xs sm:text-sm text-gray-300">
+                    <li className="flex items-start gap-2">
+                      <span className="mt-0.5">⏱️</span>
+                      <span>عادةً ما تستغرق عملية المراجعة من 1-2 يوم عمل</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="mt-0.5">📧</span>
+                      <span>سيتم إرسال إشعار إلى بريدك الإلكتروني: <span className="font-medium text-brand-yellow">{formData.email}</span></span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="mt-0.5">📞</span>
+                      <span>قد نتواصل معك على رقم: <span className="font-medium text-brand-yellow">{formData.phone}</span></span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="mt-0.5">🔒</span>
+                      <span>لن تتمكن من تسجيل الدخول حتى تتم الموافقة على حسابك</span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            {/* Call to Action */}
+            <div className="space-y-4 animate-fade-in" style={{ animationDelay: '300ms' }}>
+              <Link href="/login" className="block">
+                <Button variant="primary" size="lg" fullWidth>
+                  الذهاب إلى صفحة تسجيل الدخول
+                </Button>
+              </Link>
+
+              <Link href="/" className="block">
+                <Button variant="outline" size="lg" fullWidth>
+                  <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                  </svg>
+                  العودة للصفحة الرئيسية
+                </Button>
+              </Link>
+            </div>
+
+            {/* Good Luck Message */}
+            <div className="mt-10 text-center animate-fade-in" style={{ animationDelay: '400ms' }}>
+              <p className="text-lg text-brand-yellow font-semibold">
+                شكراً لاختياركم منصتنا! 🎉
+              </p>
+              <p className="text-sm text-gray-500 mt-2">
+                نحن متحمسون لمساعدتك في العثور على أفضل الكفاءات
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-brand-dark" dir={language === 'ar' ? 'rtl' : 'ltr'}>
@@ -439,27 +611,6 @@ export default function RegisterPage() {
                     />
                   </svg>
                   <p className="text-sm text-accent-red">{error}</p>
-                </div>
-              </div>
-            )}
-
-            {successMessage && (
-              <div className="mb-6 bg-accent-green/10 border border-accent-green/50 rounded-lg p-4 animate-slide-down">
-                <div className="flex items-center gap-2">
-                  <svg
-                    className="w-5 h-5 text-accent-green flex-shrink-0"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                    />
-                  </svg>
-                  <p className="text-sm text-accent-green">{successMessage}</p>
                 </div>
               </div>
             )}
