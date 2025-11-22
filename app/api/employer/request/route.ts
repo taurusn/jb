@@ -74,14 +74,23 @@ export async function POST(request: NextRequest) {
 
     let meetingData = null;
 
-    // If meeting details are provided, try to create the interview meeting
+    // If meeting details are provided, save the schedule and try to create Google Meet link
     if (meetingDate && meetingDuration) {
-      console.log('Creating interview meeting...');
+      console.log('Scheduling interview meeting...');
 
       const meetingDateTime = new Date(meetingDate);
+      const meetingEndsAt = new Date(meetingDateTime.getTime() + meetingDuration * 60 * 1000);
+
+      // Always save meeting schedule data (even if Google Calendar fails)
+      meetingData = {
+        meetingDate: meetingDateTime,
+        meetingDuration,
+        meetingEndsAt,
+        meetingLink: null,  // Default to null, will be updated if Google Calendar succeeds
+      };
 
       try {
-        // Create Google Meet link
+        // Try to create Google Meet link
         const meetingResult = await createInterviewMeeting({
           candidateName: employeeApplication.fullName,
           candidateEmail: employeeApplication.email || '',
@@ -91,22 +100,11 @@ export async function POST(request: NextRequest) {
           durationMinutes: meetingDuration,
         });
 
-        if (!meetingResult.success) {
-          console.error('Failed to create meeting:', meetingResult.error);
-          // Continue without meeting link - request will be created but without calendar invite
-        } else {
+        if (meetingResult.success && meetingResult.meetingLink) {
+          // Update meeting link if Google Calendar succeeded
+          meetingData.meetingLink = meetingResult.meetingLink;
 
-          // Calculate meeting end time
-          const meetingEndsAt = new Date(meetingDateTime.getTime() + meetingDuration * 60 * 1000);
-
-          meetingData = {
-            meetingLink: meetingResult.meetingLink,
-            meetingDate: meetingDateTime,
-            meetingDuration,
-            meetingEndsAt,
-          };
-
-          console.log('Meeting created successfully:', meetingData);
+          console.log('Meeting created successfully with Google Meet link:', meetingData);
 
           // Send email invitations to both parties
           if (employeeApplication.email) {
@@ -138,10 +136,13 @@ export async function POST(request: NextRequest) {
           if (!employerEmailResult.success) {
             console.error('Failed to send employer email:', employerEmailResult.error);
           }
+        } else {
+          console.error('Failed to create Google Meet link:', meetingResult.error);
+          console.log('Interview time saved without Google Meet link');
         }
       } catch (error) {
-        console.error('Error in meeting creation process:', error);
-        // Continue without meeting - request will be created but without calendar invite
+        console.error('Error in Google Calendar integration:', error);
+        console.log('Interview time saved without Google Meet link');
       }
     }
 

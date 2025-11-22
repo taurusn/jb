@@ -487,3 +487,77 @@ export async function handleUpdatePlatformSettings(request: NextRequest) {
     );
   }
 }
+
+// ============================================
+// INTERVIEW MANAGEMENT
+// ============================================
+
+/**
+ * GET /api/adminofjb/interviews/stats
+ */
+export async function handleGetInterviewStats(request: NextRequest) {
+  try {
+    getAdminFromHeaders(request); // Verify admin access
+
+    const stats = await adminService.getInterviewStats();
+
+    return NextResponse.json(stats, { status: 200 });
+  } catch (error) {
+    console.error('Error in handleGetInterviewStats:', error);
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : 'Failed to fetch interview statistics' },
+      { status: 500 }
+    );
+  }
+}
+
+/**
+ * GET /api/adminofjb/interviews
+ */
+export async function handleGetInterviews(request: NextRequest) {
+  try {
+    getAdminFromHeaders(request); // Verify admin access
+
+    const { searchParams } = new URL(request.url);
+
+    // Parse query parameters
+    const filters = {
+      search: searchParams.get('search') || undefined,
+      status: (searchParams.get('status') as 'live' | 'upcoming' | 'completed' | 'all') || 'all',
+      startDate: searchParams.get('startDate') ? new Date(searchParams.get('startDate')!) : undefined,
+      endDate: searchParams.get('endDate') ? new Date(searchParams.get('endDate')!) : undefined,
+      duration: searchParams.get('duration') ? parseInt(searchParams.get('duration')!) : undefined,
+      page: searchParams.get('page') ? parseInt(searchParams.get('page')!) : 1,
+      limit: searchParams.get('limit') ? parseInt(searchParams.get('limit')!) : 20,
+    };
+
+    const result = await adminService.getInterviews(filters);
+
+    return NextResponse.json(result, { status: 200 });
+  } catch (error) {
+    console.error('Error in handleGetInterviews:', error);
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : 'Failed to fetch interviews' },
+      { status: 500 }
+    );
+  }
+}
+
+/**
+ * GET /api/adminofjb/interviews/[id]
+ */
+export async function handleGetInterviewById(request: NextRequest, id: string) {
+  try {
+    getAdminFromHeaders(request); // Verify admin access
+
+    const interview = await adminService.getInterviewById(id);
+
+    return NextResponse.json(interview, { status: 200 });
+  } catch (error) {
+    console.error('Error in handleGetInterviewById:', error);
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : 'Failed to fetch interview details' },
+      { status: 404 }
+    );
+  }
+}

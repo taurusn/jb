@@ -981,3 +981,243 @@ export async function rejectEmployer(employerId: string, adminId: string, reason
     throw new Error('Failed to reject employer');
   }
 }
+
+// ============================================
+// INTERVIEW MANAGEMENT
+// ============================================
+
+/**
+ * Get interview statistics for admin dashboard
+ */
+export async function getInterviewStats() {
+  try {
+    const now = new Date();
+
+    // Today's date range
+    const todayStart = new Date(now);
+    todayStart.setHours(0, 0, 0, 0);
+    const todayEnd = new Date(now);
+    todayEnd.setHours(23, 59, 59, 999);
+
+    // Next 7 days
+    const next7Days = new Date(now);
+    next7Days.setDate(next7Days.getDate() + 7);
+
+    // Current month start
+    const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    const [
+      todayCount,
+      upcomingCount,
+      completedThisMonth,
+      totalScheduled,
+      avgDuration,
+    ] = await Promise.all([
+      // Today's interviews
+      db.employeeRequest.count({
+        where: {
+          meetingDate: {
+            gte: todayStart,
+            lte: todayEnd,
+          },
+        },
+      }),
+      // Upcoming in next 7 days
+      db.employeeRequest.count({
+        where: {
+          meetingDate: {
+            gt: now,
+            lte: next7Days,
+          },
+        },
+      }),
+      // Completed this month
+      db.employeeRequest.count({
+        where: {
+          meetingEndsAt: {
+            lt: now,
+            gte: currentMonthStart,
+          },
+        },
+      }),
+      // Total scheduled all time
+      db.employeeRequest.count({
+        where: {
+          meetingDate: { not: null },
+        },
+      }),
+      // Average duration
+      db.employeeRequest.aggregate({
+        where: {
+          meetingDuration: { not: null },
+        },
+        _avg: {
+          meetingDuration: true,
+        },
+      }),
+    ]);
+
+    return {
+      todayCount,
+      upcomingCount,
+      completedThisMonth,
+      totalScheduled,
+      averageDuration: Math.round(avgDuration._avg.meetingDuration || 0),
+    };
+  } catch (error) {
+    console.error('Error fetching interview stats:', error);
+    throw new Error('Failed to fetch interview statistics');
+  }
+}
+
+/**
+ * Get interviews with filtering and pagination
+ */
+export async function getInterviews(filters: {
+  search?: string;
+  status?: 'live' | 'upcoming' | 'completed' | 'all';
+  startDate?: Date;
+  endDate?: Date;
+  duration?: number;
+  page?: number;
+  limit?: number;
+}) {
+  try {
+    const {
+      search,
+      status = 'all',
+      startDate,
+      endDate,
+      duration,
+      page = 1,
+      limit = 20,
+    } = filters;
+
+    const now = new Date();
+    const skip = (page - 1) * limit;
+
+    // Build where clause - only require meetingDate (not meetingLink)
+    const where: any = {
+      meetingDate: { not: null },
+    };
+
+    // Status filtering
+    if (status === 'live') {
+      where.meetingDate = { lte: now };
+      where.meetingEndsAt = { gte: now };
+    } else if (status === 'upcoming') {
+      where.meetingDate = { gt: now };
+    } else if (status === 'completed') {
+      where.meetingEndsAt = { lt: now };
+    }
+
+    // Date range filtering
+    if (startDate && endDate) {
+      where.meetingDate = {
+        gte: startDate,
+        lte: endDate,
+      };
+    }
+
+    // Duration filtering
+    if (duration) {
+      where.meetingDuration = duration;
+    }
+
+    // Search filtering (employer company name or candidate name)
+    if (search) {
+      where.OR = [
+        {
+          employer: {
+            profile: {
+              companyName: {
+                contains: search,
+                mode: 'insensitive',
+              },
+            },
+          },
+        },
+        {
+          employee: {
+            fullName: {
+              contains: search,
+              mode: 'insensitive',
+            },
+          },
+        },
+      ];
+    }
+
+    const [interviews, total] = await Promise.all([
+      db.employeeRequest.findMany({
+        where,
+        include: {
+          employee: {
+            select: {
+              id: true,
+              fullName: true,
+              phone: true,
+              email: true,
+              skills: true,
+              experience: true,
+              profilePictureUrl: true,
+            },
+          },
+          employer: {
+            include: {
+              user: {
+                select: {
+                  email: true,
+                },
+              },
+            },
+          },
+        },
+        orderBy: {
+          meetingDate: status === 'completed' ? 'desc' : 'asc',
+        },
+        skip,
+        take: limit,
+      }),
+      db.employeeRequest.count({ where }),
+    ]);
+
+    return {
+      interviews,
+      total,
+      page,
+      totalPages: Math.ceil(total / limit),
+    };
+  } catch (error) {
+    console.error('Error fetching interviews:', error);
+    throw new Error('Failed to fetch interviews');
+  }
+}
+
+/**
+ * Get interview details by request ID
+ */
+export async function getInterviewById(requestId: string) {
+  try {
+    const interview = await db.employeeRequest.findUnique({
+      where: { id: requestId },
+      include: {
+        employee: true,
+        employer: {
+          include: {
+            profile: true,
+          },
+        },
+      },
+    });
+
+    if (!interview) {
+      throw new Error('Interview not found');
+    }
+
+    return interview;
+  } catch (error) {
+    console.error('Error fetching interview:', error);
+    throw new Error('Failed to fetch interview details');
+  }
+}
