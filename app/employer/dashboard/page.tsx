@@ -453,152 +453,158 @@ export default function EmployerDashboard() {
 
                   <div className="flex flex-col sm:flex-row gap-2 pt-3 border-t border-dark-300">
                     {/* Resume Button */}
-                    {applicant.resumeUrl ? (
-                      <a
-                        href={`/view-document?file=${encodeURIComponent(applicant.resumeUrl)}&name=${encodeURIComponent(applicant.fullName)}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="w-full sm:flex-1"
-                      >
-                        <Button variant="outline" size="sm" fullWidth>
+                    <div className="w-full sm:flex-1">
+                      {applicant.resumeUrl ? (
+                        <a
+                          href={`/view-document?file=${encodeURIComponent(applicant.resumeUrl)}&name=${encodeURIComponent(applicant.fullName)}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="block"
+                        >
+                          <Button variant="outline" size="sm" fullWidth>
+                            <svg className="w-4 h-4 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>
+                            <span className="hidden sm:inline">عرض السيرة الذاتية</span>
+                            <span className="sm:hidden">CV</span>
+                          </Button>
+                        </a>
+                      ) : (
+                        <Button variant="outline" size="sm" fullWidth disabled>
                           <svg className="w-4 h-4 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                           </svg>
-                          <span className="hidden sm:inline">عرض السيرة الذاتية</span>
-                          <span className="sm:hidden">CV</span>
+                          <span className="hidden sm:inline">No Resume</span>
+                          <span className="sm:hidden">No CV</span>
                         </Button>
-                      </a>
-                    ) : (
-                      <Button variant="outline" size="sm" fullWidth disabled>
-                        <svg className="w-4 h-4 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                        </svg>
-                        <span className="hidden sm:inline">No Resume</span>
-                        <span className="sm:hidden">No CV</span>
-                      </Button>
-                    )}
+                      )}
+                    </div>
 
                     {/* Video Button */}
-                    {applicant.videoUrl ? (
-                      <a
-                        href={`/view-document?file=${encodeURIComponent(applicant.videoUrl)}&name=${encodeURIComponent(applicant.fullName)}&type=video`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="w-full sm:flex-1"
-                      >
-                        <Button variant="outline" size="sm" fullWidth>
-                          <svg className="w-4 h-4 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                          </svg>
-                          <span className="hidden sm:inline">عرض الفيديو</span>
-                          <span className="sm:hidden">Video</span>
-                        </Button>
-                      </a>
-                    ) : (
-                      <Button variant="outline" size="sm" fullWidth disabled>
-                        <svg className="w-4 h-4 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                        </svg>
-                        <span className="hidden sm:inline">No Video</span>
-                        <span className="sm:hidden">No Video</span>
-                      </Button>
-                    )}
-                    
-                    {showRequestButton ? (
-                      // For unrequested candidates - show request button
-                      selectedApplicant === applicant.id && requestSuccess ? (
-                        <div className="flex items-center justify-center gap-2 px-4 py-2 bg-accent-green/10 border border-accent-green text-accent-green rounded-lg sm:flex-1">
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                          </svg>
-                          <span className="text-sm font-medium">Requested!</span>
-                        </div>
-                      ) : (
-                        <Button
-                          variant="primary"
-                          size="sm"
-                          onClick={() => handleRequest(applicant)}
-                          disabled={requestLoading}
-                          className="sm:flex-1"
+                    <div className="w-full sm:flex-1">
+                      {applicant.videoUrl ? (
+                        <a
+                          href={`/view-document?file=${encodeURIComponent(applicant.videoUrl)}&name=${encodeURIComponent(applicant.fullName)}&type=video`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="block"
                         >
-                          {requestLoading && selectedApplicant === applicant.id ? (
-                            <div className="flex items-center gap-2">
-                              <div className="w-3 h-3 border-2 border-brand-dark border-t-transparent rounded-full animate-spin"></div>
-                              <span className="hidden sm:inline">Requesting...</span>
-                              <span className="sm:hidden">...</span>
-                            </div>
-                          ) : (
-                            <>
-                              <svg className="w-4 h-4 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                              </svg>
-                              <span className="hidden sm:inline">طلب المرشح</span>
-                              <span className="sm:hidden">طلب</span>
-                            </>
-                          )}
+                          <Button variant="outline" size="sm" fullWidth>
+                            <svg className="w-4 h-4 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span className="hidden sm:inline">عرض الفيديو</span>
+                            <span className="sm:hidden">Video</span>
+                          </Button>
+                        </a>
+                      ) : (
+                        <Button variant="outline" size="sm" fullWidth disabled>
+                          <svg className="w-4 h-4 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                          </svg>
+                          <span className="hidden sm:inline">No Video</span>
+                          <span className="sm:hidden">No Video</span>
                         </Button>
-                      )
-                    ) : (
-                      // For requested candidates - show status management
-                      applicant.requestStatus === 'PENDING' ? (
-                        <div className="flex gap-2 sm:flex-1">
+                      )}
+                    </div>
+                    
+                    <div className="w-full sm:flex-1">
+                      {showRequestButton ? (
+                        // For unrequested candidates - show request button
+                        selectedApplicant === applicant.id && requestSuccess ? (
+                          <div className="flex items-center justify-center gap-2 px-4 py-2 bg-accent-green/10 border border-accent-green text-accent-green rounded-lg w-full">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            </svg>
+                            <span className="text-sm font-medium">Requested!</span>
+                          </div>
+                        ) : (
                           <Button
                             variant="primary"
                             size="sm"
-                            onClick={() => handleStatusUpdate(applicant.requestId!, 'APPROVED')}
-                            disabled={updateLoading && updatingRequestId === applicant.requestId}
-                            className="flex-1"
+                            onClick={() => handleRequest(applicant)}
+                            disabled={requestLoading}
+                            fullWidth
                           >
-                            {updateLoading && updatingRequestId === applicant.requestId ? (
-                              <div className="flex items-center gap-1 justify-center">
+                            {requestLoading && selectedApplicant === applicant.id ? (
+                              <div className="flex items-center gap-2">
                                 <div className="w-3 h-3 border-2 border-brand-dark border-t-transparent rounded-full animate-spin"></div>
+                                <span className="hidden sm:inline">Requesting...</span>
+                                <span className="sm:hidden">...</span>
                               </div>
                             ) : (
                               <>
                                 <svg className="w-4 h-4 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                                 </svg>
-                                <span className="hidden sm:inline">موافقة</span>
-                                <span className="sm:hidden">✓</span>
+                                <span className="hidden sm:inline">طلب المرشح</span>
+                                <span className="sm:hidden">طلب</span>
                               </>
                             )}
                           </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleStatusUpdate(applicant.requestId!, 'REJECTED')}
-                            disabled={updateLoading && updatingRequestId === applicant.requestId}
-                            className="flex-1 border-accent-red text-accent-red hover:bg-accent-red hover:text-white"
-                          >
-                            <svg className="w-4 h-4 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                            <span className="hidden sm:inline">رفض</span>
-                            <span className="sm:hidden">✗</span>
-                          </Button>
-                        </div>
+                        )
                       ) : (
-                        // Show final status
-                        <div className={`flex items-center justify-center gap-2 px-3 sm:px-4 py-2 rounded-lg sm:flex-1 ${
-                          applicant.requestStatus === 'APPROVED' 
-                            ? 'bg-accent-green/10 border border-accent-green text-accent-green' 
-                            : 'bg-accent-red/10 border border-accent-red text-accent-red'
-                        }`}>
-                          <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            {applicant.requestStatus === 'APPROVED' ? (
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                            ) : (
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                            )}
-                          </svg>
-                          <span className="text-xs sm:text-sm font-medium">
-                            {applicant.requestStatus === 'APPROVED' ? 'موافق عليه' : 'مرفوض'}
-                          </span>
-                        </div>
-                      )
-                    )}
+                        // For requested candidates - show status management
+                        applicant.requestStatus === 'PENDING' ? (
+                          <div className="flex gap-2 w-full">
+                            <Button
+                              variant="primary"
+                              size="sm"
+                              onClick={() => handleStatusUpdate(applicant.requestId!, 'APPROVED')}
+                              disabled={updateLoading && updatingRequestId === applicant.requestId}
+                              className="flex-1"
+                            >
+                              {updateLoading && updatingRequestId === applicant.requestId ? (
+                                <div className="flex items-center gap-1 justify-center">
+                                  <div className="w-3 h-3 border-2 border-brand-dark border-t-transparent rounded-full animate-spin"></div>
+                                </div>
+                              ) : (
+                                <>
+                                  <svg className="w-4 h-4 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                  </svg>
+                                  <span className="hidden sm:inline">موافقة</span>
+                                  <span className="sm:hidden">✓</span>
+                                </>
+                              )}
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleStatusUpdate(applicant.requestId!, 'REJECTED')}
+                              disabled={updateLoading && updatingRequestId === applicant.requestId}
+                              className="flex-1 border-accent-red text-accent-red hover:bg-accent-red hover:text-white"
+                            >
+                              <svg className="w-4 h-4 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                              </svg>
+                              <span className="hidden sm:inline">رفض</span>
+                              <span className="sm:hidden">✗</span>
+                            </Button>
+                          </div>
+                        ) : (
+                          // Show final status
+                          <div className={`flex items-center justify-center gap-2 px-3 sm:px-4 py-2 rounded-lg w-full ${
+                            applicant.requestStatus === 'APPROVED'
+                              ? 'bg-accent-green/10 border border-accent-green text-accent-green'
+                              : 'bg-accent-red/10 border border-accent-red text-accent-red'
+                          }`}>
+                            <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              {applicant.requestStatus === 'APPROVED' ? (
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                              ) : (
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                              )}
+                            </svg>
+                            <span className="text-xs sm:text-sm font-medium">
+                              {applicant.requestStatus === 'APPROVED' ? 'موافق عليه' : 'مرفوض'}
+                            </span>
+                          </div>
+                        )
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>

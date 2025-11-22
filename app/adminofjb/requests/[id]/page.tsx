@@ -289,7 +289,7 @@ export default function RequestDetailPage({ params }: { params: Promise<{ id: st
           </div>
 
           {/* Meeting Information */}
-          {request.meetingLink && (
+          {request.meetingDate && (
             <div className="bg-gradient-to-br from-green-500/10 to-green-500/5 border border-green-500/30 rounded-2xl p-6">
               <div className="flex items-center gap-3 mb-4">
                 <span className="text-3xl">📅</span>
@@ -298,14 +298,12 @@ export default function RequestDetailPage({ params }: { params: Promise<{ id: st
 
               <div className="space-y-3">
                 <div>
-                  <label className="text-sm text-gray-400 block mb-1">Meeting Date</label>
+                  <label className="text-sm text-gray-400 block mb-1">Meeting Date & Time</label>
                   <p className="text-white font-semibold">
-                    {request.meetingDate
-                      ? new Date(request.meetingDate).toLocaleString('en-US', {
-                          dateStyle: 'full',
-                          timeStyle: 'short',
-                        })
-                      : 'N/A'}
+                    {new Date(request.meetingDate).toLocaleString('en-US', {
+                      dateStyle: 'full',
+                      timeStyle: 'short',
+                    })}
                   </p>
                 </div>
 
@@ -314,15 +312,27 @@ export default function RequestDetailPage({ params }: { params: Promise<{ id: st
                   <p className="text-white">{request.meetingDuration} minutes</p>
                 </div>
 
-                <a
-                  href={request.meetingLink}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-6 py-3 bg-green-500 text-white rounded-lg font-semibold hover:bg-green-600 transition-all transform hover:scale-105"
-                >
-                  <span>🎥</span>
-                  Join Meeting
-                </a>
+                {request.meetingLink ? (
+                  <a
+                    href={request.meetingLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 px-6 py-3 bg-green-500 text-white rounded-lg font-semibold hover:bg-green-600 transition-all transform hover:scale-105"
+                  >
+                    <span>🎥</span>
+                    Join Google Meet
+                  </a>
+                ) : (
+                  <div className="flex items-start gap-3 p-4 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
+                    <span className="text-2xl flex-shrink-0">⚠️</span>
+                    <div>
+                      <p className="text-yellow-400 font-semibold mb-1">No Google Meet Link</p>
+                      <p className="text-sm text-gray-400">
+                        Interview time scheduled, but no Google Meet link was generated. Please contact the employer or candidate separately to arrange the meeting.
+                      </p>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           )}

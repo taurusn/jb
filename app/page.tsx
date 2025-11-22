@@ -91,8 +91,8 @@ export default function HomePage() {
   const [applicationsAllowed, setApplicationsAllowed] = useState<boolean | null>(null);
   const [checkingSettings, setCheckingSettings] = useState(true);
 
-  // Language state (default to Arabic)
-  const [language, setLanguage] = useState<'ar' | 'en'>('ar');
+  // Language state (default to English)
+  const [language, setLanguage] = useState<'ar' | 'en'>('en');
   const t = translations[language];
 
   // Multi-step form state
