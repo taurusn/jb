@@ -86,7 +86,7 @@ export async function POST(request: NextRequest) {
         meetingDate: meetingDateTime,
         meetingDuration,
         meetingEndsAt,
-        meetingLink: null as string | null,  // Default to null, will be updated if Google Calendar succeeds
+        meetingLink: undefined,  // Default to undefined (Zod optional), will be updated if Google Calendar succeeds
       };
 
       try {
@@ -155,9 +155,13 @@ export async function POST(request: NextRequest) {
     };
 
     // Create request
+    console.log('Creating request with data:', requestData);
     const result = await handleCreateEmployeeRequest(requestData);
 
+    console.log('Request creation result:', result);
+
     if (!result.success) {
+      console.error('Failed to create request:', result.error);
       return NextResponse.json(
         { success: false, error: result.error },
         { status: 400 }

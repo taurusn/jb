@@ -92,17 +92,21 @@ export const employeeRequestSchema = z.object({
     .or(z.literal('')),
   meetingLink: z
     .string()
+    .nullable()
     .optional(),
   meetingDate: z
     .coerce.date()
+    .nullable()
     .optional(),
   meetingDuration: z
     .number()
     .int()
     .positive()
+    .nullable()
     .optional(),
   meetingEndsAt: z
     .coerce.date()
+    .nullable()
     .optional(),
 });
 

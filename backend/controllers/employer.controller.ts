@@ -16,15 +16,20 @@ export async function handleCreateEmployeeRequest(
   body: unknown
 ): Promise<ApiResponse<EmployeeRequestData>> {
   try {
+    console.log('handleCreateEmployeeRequest received body:', body);
+
     // Validate input
     const validation = employeeRequestSchema.safeParse(body);
 
     if (!validation.success) {
+      console.error('Validation failed:', validation.error.issues);
       return {
         success: false,
         error: validation.error.issues[0]?.message || 'Invalid input',
       };
     }
+
+    console.log('Validation passed, creating request...');
 
     // Create request
     const result = await createEmployeeRequest(validation.data);
