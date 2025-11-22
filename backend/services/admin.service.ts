@@ -1205,7 +1205,11 @@ export async function getInterviewById(requestId: string) {
         employee: true,
         employer: {
           include: {
-            profile: true,
+            user: {
+              select: {
+                email: true,
+              },
+            },
           },
         },
       },
