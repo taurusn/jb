@@ -86,7 +86,7 @@ export async function POST(request: NextRequest) {
         meetingDate: meetingDateTime,
         meetingDuration,
         meetingEndsAt,
-        meetingLink: null,  // Default to null, will be updated if Google Calendar succeeds
+        meetingLink: null as string | null,  // Default to null, will be updated if Google Calendar succeeds
       };
 
       try {
