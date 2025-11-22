@@ -18,6 +18,9 @@ A comprehensive admin dashboard is now fully implemented at `/adminofjb/*`. This
 **Admin Features:**
 - **Dashboard Analytics:** Platform statistics with real-time counts and activity feeds
 - **Requests Management:** View, update status, and delete all employer-to-candidate requests
+  - **Meeting Information Display:** Shows scheduled interview details even when Google Meet link is unavailable
+  - Warning indicator when interview is scheduled without Google Meet link
+  - Complete meeting metadata (date, time, duration) always visible
 - **Candidates Management:** Full CRUD operations for candidate applications with search and filtering
 - **Employers Management:** View, search, filter, and manage all employer accounts with status badges
 - **✅ Employer Approval Workflow** (Fully Implemented):
@@ -63,7 +66,7 @@ A comprehensive admin dashboard is now fully implemented at `/adminofjb/*`. This
   - Comprehensive skills analytics in admin dashboard
   - List/Grid view toggle with localStorage persistence
 - **Multilingual Support** (✅ Fully Implemented):
-  - Employee application form: Arabic (default) with English toggle
+  - Employee application form: English (default) with Arabic toggle
   - Employer registration form: Arabic (default) with English toggle
   - Employer landing page: Full Arabic at `/employers` with IBM Plex Sans Arabic font
   - Language toggle button on all public-facing forms
@@ -78,7 +81,11 @@ A comprehensive admin dashboard is now fully implemented at `/adminofjb/*`. This
   - Call-to-action buttons for login and home navigation
 - Secure employer dashboard with JWT authentication
 - **Full admin dashboard** with platform oversight, audit logging, and skills analytics
-- Google Calendar integration for interview scheduling
+- **Google Calendar Integration** (Optional):
+  - Automatically creates Google Meet links when credentials are configured
+  - Interview scheduling works without Google Calendar (saves meeting time/date/duration)
+  - Platform gracefully handles missing Google Calendar credentials
+  - Meetings display in admin dashboard regardless of Google Meet link availability
 - Automated meeting cleanup via background tasks
 - CV upload with Supabase Storage (primary) and Cloudinary (fallback) integration
 - Email notifications via Resend
@@ -375,11 +382,18 @@ Key constraint: `@@unique([employeeId, employerId])` prevents duplicate requests
 - **Security:** Files are validated before serving, proper content-type headers prevent XSS
 
 **6. Interview Scheduling**
-- Google Calendar API integration (`lib/google-calendar.ts`)
-- OAuth2 flow for admin authorization (`/api/google/auth/*`)
-- Automatically creates Google Meet links
-- Sends email invitations to both parties
-- Meeting data stored in `EmployeeRequest` model: `meetingLink`, `meetingDate`, `meetingDuration`, `meetingEndsAt`
+- **Meeting Data Persistence:** Always saves meeting schedule (`meetingDate`, `meetingDuration`, `meetingEndsAt`) in `EmployeeRequest` model
+- **Google Calendar Integration (Optional):**
+  - Configured via environment variables (`GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REFRESH_TOKEN`)
+  - OAuth2 flow for admin authorization (`/api/google/auth/*`)
+  - When configured: Automatically creates Google Meet links and sends email invitations
+  - When not configured: Meeting schedule is still saved, no Google Meet link generated
+  - Platform gracefully handles missing credentials (interview scheduling continues to work)
+- **Meeting Display:**
+  - Admin dashboard shows all scheduled meetings regardless of Google Meet link availability
+  - Warning indicator displayed when meeting is scheduled without Google Meet link
+  - Employers can see meeting details in request view
+- **Nullable Fields:** `meetingLink` is nullable in database and validation schemas to support optional Google Calendar integration
 
 **7. Background Tasks**
 - Initiated via `instrumentation.ts` (runs once on server startup)
@@ -395,7 +409,10 @@ Key constraint: `@@unique([employeeId, employerId])` prevents duplicate requests
 - Zod schemas in `backend/validators/*.ts`
 - Validation happens in controllers before passing to services
 - Type-safe runtime validation
-- **Important:** Date fields like `iqamaExpiryDate` should be passed as strings to validators, which then transform them to Date objects
+- **Important Notes:**
+  - Date fields like `iqamaExpiryDate` should be passed as strings to validators, which then transform them to Date objects
+  - Meeting fields (`meetingLink`, `meetingDate`, `meetingDuration`, `meetingEndsAt`) use `.nullable().optional()` to support cases where Google Calendar is not configured
+  - TypeScript interfaces in `backend/types.ts` accept `| null` for meeting fields to match database schema
 
 **10. Skills System** (✅ Fully Implemented)
 
