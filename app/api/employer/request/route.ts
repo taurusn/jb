@@ -86,7 +86,7 @@ export async function POST(request: NextRequest) {
         meetingDate: meetingDateTime,
         meetingDuration,
         meetingEndsAt,
-        meetingLink: undefined,  // Default to undefined (Zod optional), will be updated if Google Calendar succeeds
+        meetingLink: undefined as string | undefined,  // Default to undefined (Zod accepts nullable/optional), will be updated if Google Calendar succeeds
       };
 
       try {

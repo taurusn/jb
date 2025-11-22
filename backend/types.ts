@@ -125,11 +125,11 @@ export interface CreateEmployeeRequestData {
   employeeId: string;
   employerId: string;
   notes?: string;
-  // Interview scheduling fields
-  meetingLink?: string;
-  meetingDate?: Date;
-  meetingDuration?: number; // 30, 45, or 60 minutes
-  meetingEndsAt?: Date;
+  // Interview scheduling fields (nullable to support cases where Google Calendar is not configured)
+  meetingLink?: string | null;
+  meetingDate?: Date | null;
+  meetingDuration?: number | null; // 30, 45, or 60 minutes
+  meetingEndsAt?: Date | null;
 }
 
 export interface EmployeeRequestWithDetails extends EmployeeRequestData {
