@@ -1,4 +1,4 @@
-# 🎯 Job Platform - Full-Stack Recruitment Application
+# 🎯 Ready HR - Full-Stack Recruitment Application
 
 A modern, vibrant full-stack job recruitment platform built with Next.js 15, TypeScript, Prisma, and PostgreSQL. Features a stunning dark theme with electric yellow accents, smooth animations, and a complete employer-employee workflow.
 
@@ -53,7 +53,7 @@ A modern, vibrant full-stack job recruitment platform built with Next.js 15, Typ
 1. **Clone the repository**
    ```bash
    git clone <repository-url>
-   cd job-platform
+   cd ready-hr
    ```
 
 2. **Install dependencies**
@@ -66,7 +66,7 @@ A modern, vibrant full-stack job recruitment platform built with Next.js 15, Typ
    Create a `.env` file in the root directory:
    ```env
    # Database
-   DATABASE_URL="postgresql://user:password@localhost:5432/jobplatform"
+   DATABASE_URL="postgresql://user:password@localhost:5432/ready_hr"
    
    # JWT Authentication
    JWT_SECRET="your-super-secret-jwt-key-change-this-in-production"
@@ -106,7 +106,7 @@ A modern, vibrant full-stack job recruitment platform built with Next.js 15, Typ
 ## 📁 Project Structure
 
 ```
-job-platform/
+ready-hr/
 ├── app/                      # Next.js 15 App Router
 │   ├── api/                  # API Routes
 │   │   ├── auth/            # Authentication endpoints

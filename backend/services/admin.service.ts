@@ -813,7 +813,7 @@ export async function getPlatformSettings() {
           maintenanceMode: false,
           allowNewRegistrations: true,
           allowNewApplications: true,
-          platformName: 'Job Platform',
+          platformName: 'Ready HR',
         },
       });
     }
@@ -848,7 +848,7 @@ export async function updatePlatformSettings(
         maintenanceMode: data.maintenanceMode ?? false,
         allowNewRegistrations: data.allowNewRegistrations ?? true,
         allowNewApplications: data.allowNewApplications ?? true,
-        platformName: data.platformName ?? 'Job Platform',
+        platformName: data.platformName ?? 'Ready HR',
         supportEmail: data.supportEmail,
         supportPhone: data.supportPhone,
         updatedBy: adminId,

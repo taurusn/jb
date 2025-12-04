@@ -38,7 +38,7 @@ export default function LoginPage() {
         <div className="text-center mb-8 animate-slide-down">
           <Link href="/" className="inline-block">
             <div className="w-16 h-16 bg-brand-yellow rounded-2xl mx-auto mb-4 flex items-center justify-center transform hover:scale-110 hover:rotate-3 transition-all duration-300">
-              <span className="text-brand-dark font-bold text-3xl">J</span>
+              <span className="text-brand-dark font-bold text-3xl">R</span>
             </div>
           </Link>
           <h1 className="text-3xl font-display font-bold text-brand-light mb-2">

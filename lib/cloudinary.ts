@@ -46,7 +46,7 @@ export function getSignedUrl(publicId: string, resourceType: string = 'raw'): st
  */
 export async function uploadToCloudinary(
   file: File,
-  folder: string = 'job-platform'
+  folder: string = 'ready-hr'
 ): Promise<CloudinaryUploadResult> {
   try {
     // Convert file to base64

@@ -22,19 +22,19 @@ const ibmPlexArabic = IBM_Plex_Sans_Arabic({
 });
 
 export const metadata: Metadata = {
-  title: 'Job Platform - Find Your Next Opportunity',
+  title: 'Ready HR - Find Your Next Opportunity',
   description: 'Connect talented professionals with leading employers. Submit your application or find the perfect candidate for your team.',
   keywords: ['jobs', 'recruitment', 'employment', 'careers', 'hiring'],
   openGraph: {
-    title: 'Job Platform - Land Your Next Opportunity',
+    title: 'Ready HR - Land Your Next Opportunity',
     description: 'One simple application connects you with employers actively seeking talent. No complicated processes, no endless forms.',
     type: 'website',
     locale: 'en_US',
-    siteName: 'Job Platform',
+    siteName: 'Ready HR',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Job Platform - Land Your Next Opportunity',
+    title: 'Ready HR - Land Your Next Opportunity',
     description: 'One simple application connects you with employers actively seeking talent.',
   },
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'),

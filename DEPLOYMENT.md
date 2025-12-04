@@ -1,4 +1,4 @@
-# 🚀 Job Platform Deployment Guide
+# 🚀 Ready HR Deployment Guide
 
 ## ✅ Pre-Deployment Checklist
 
@@ -28,7 +28,7 @@ npx prisma db seed
 #### **Required Environment Variables:**
 ```env
 # Database
-DATABASE_URL="postgresql://username:password@host:5432/job_platform"
+DATABASE_URL="postgresql://username:password@host:5432/ready_hr"
 
 # JWT (Generate with: openssl rand -base64 32)
 JWT_SECRET="your-32-character-secret"

@@ -48,7 +48,7 @@ export function AdminNavbar() {
               <h1 className="text-[#FEE715] font-bold text-lg group-hover:text-[#FEE715]/90 transition-colors">
                 Admin Panel
               </h1>
-              <p className="text-xs text-gray-500">Job Platform</p>
+              <p className="text-xs text-gray-500">Ready HR</p>
             </div>
           </Link>
 

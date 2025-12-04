@@ -58,10 +58,10 @@ const Navbar: React.FC<NavbarProps> = ({ isAuthenticated = false, onLogout }) =>
             className="flex items-center gap-2 group"
           >
             <div className="w-10 h-10 bg-brand-yellow rounded-lg flex items-center justify-center transform transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3">
-              <span className="text-brand-dark font-bold text-xl">J</span>
+              <span className="text-brand-dark font-bold text-xl">R</span>
             </div>
             <span className="text-brand-light font-display font-bold text-xl hidden sm:inline-block">
-              Job<span className="text-brand-yellow">Platform</span>
+              Ready<span className="text-brand-yellow">HR</span>
             </span>
           </Link>
 

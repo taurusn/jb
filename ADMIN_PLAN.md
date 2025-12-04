@@ -107,7 +107,7 @@ model PlatformSettings {
   maintenanceMode       Boolean  @default(false) @map("maintenance_mode")
   allowNewRegistrations Boolean  @default(true) @map("allow_new_registrations")
   allowNewApplications  Boolean  @default(true) @map("allow_new_applications")
-  platformName          String   @default("Job Platform") @map("platform_name")
+  platformName          String   @default("Ready HR") @map("platform_name")
   supportEmail          String?  @map("support_email")
   supportPhone          String?  @map("support_phone")
   updatedAt             DateTime @updatedAt @map("updated_at")
@@ -422,8 +422,8 @@ features/admin/
 
 #### General Settings
 ```
-Platform Name:        [Job Platform                    ]
-Support Email:        [support@jobplatform.com         ]
+Platform Name:        [Ready HR                         ]
+Support Email:        [support@readyhr.com              ]
 Support Phone:        [+966 50 123 4567                ]
 ```
 
@@ -458,7 +458,7 @@ Time zone:            [Asia/Riyadh  ▼]
 
 **Row Example:**
 ```
-admin@jobplatform.com | DELETE_REQUEST | Request #REQ-1234 |
+admin@readyhr.com | DELETE_REQUEST | Request #REQ-1234 |
 Deleted request for John Doe | 192.168.1.1 | Jan 10, 2025 10:30 AM
 ```
 
@@ -737,7 +737,7 @@ Automatic audit log creation for:
 const adminPassword = await bcrypt.hash('Admin@123456', 10);
 const admin = await prisma.user.create({
   data: {
-    email: 'admin@jobplatform.com',
+    email: 'admin@readyhr.com',
     passwordHash: adminPassword,
     role: 'ADMIN',
   },
@@ -745,7 +745,7 @@ const admin = await prisma.user.create({
 ```
 
 **Default Admin Credentials:**
-- Email: `admin@jobplatform.com`
+- Email: `admin@readyhr.com`
 - Password: `Admin@123456`
 - **⚠️ Change after first login!**
 

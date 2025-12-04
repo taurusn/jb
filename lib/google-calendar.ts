@@ -141,7 +141,7 @@ export async function createInterviewMeeting(
 
     const event: CalendarEvent = {
       summary: `Interview: ${params.candidateName} & ${params.employerName}`,
-      description: `Job Platform Interview\n\nCandidate: ${params.candidateName}\nEmployer: ${params.employerName}\n\nThis meeting was automatically scheduled through Job Platform.`,
+      description: `Ready HR Interview\n\nCandidate: ${params.candidateName}\nEmployer: ${params.employerName}\n\nThis meeting was automatically scheduled through Ready HR.`,
       start: {
         dateTime: params.meetingDate.toISOString(),
         timeZone: 'Asia/Riyadh', // Saudi Arabia timezone

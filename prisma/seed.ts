@@ -64,13 +64,13 @@ async function main() {
   // Create admin account
   const adminPasswordHash = await bcrypt.hash('Admin@123456', 10);
   const admin = await prisma.user.upsert({
-    where: { email: 'admin@jobplatform.com' },
+    where: { email: 'admin@readyhr.com' },
     update: {
       role: 'ADMIN',
       passwordHash: adminPasswordHash,
     },
     create: {
-      email: 'admin@jobplatform.com',
+      email: 'admin@readyhr.com',
       passwordHash: adminPasswordHash,
       role: 'ADMIN',
       commercialRegistrationNumber: 'ADMIN-N/A',
@@ -92,8 +92,8 @@ async function main() {
       maintenanceMode: false,
       allowNewRegistrations: true,
       allowNewApplications: true,
-      platformName: 'Job Platform',
-      supportEmail: 'support@jobplatform.com',
+      platformName: 'Ready HR',
+      supportEmail: 'support@readyhr.com',
       supportPhone: '+966 50 123 4567',
     },
   });
@@ -157,7 +157,7 @@ async function main() {
   console.log('\n🎉 Database seeding completed successfully!');
   console.log('\n📝 Test Accounts:');
   console.log('\n   ADMIN ACCOUNT:');
-  console.log('   Email: admin@jobplatform.com');
+  console.log('   Email: admin@readyhr.com');
   console.log('   Password: Admin@123456');
   console.log('   Access: /adminofjb/login');
   console.log('   ⚠️  Change password after first login!');

@@ -95,7 +95,7 @@ function LoginForm() {
                   setFormData({ ...formData, email: e.target.value })
                 }
                 className="w-full px-4 py-3 bg-dark-400 border-2 border-dark-300 rounded-lg text-brand-light placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-yellow focus:border-brand-yellow transition-all"
-                placeholder="admin@jobplatform.com"
+                placeholder="admin@readyhr.com"
               />
             </div>
 
@@ -133,7 +133,7 @@ function LoginForm() {
           {/* Info */}
           <div className="mt-6 pt-6 border-t border-dark-300">
             <p className="text-xs text-gray-500 text-center">
-              Default credentials: admin@jobplatform.com / Admin@123456
+              Default credentials: admin@readyhr.com / Admin@123456
             </p>
             <p className="text-xs text-accent-red text-center mt-2 flex items-center justify-center gap-1">
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

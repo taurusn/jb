@@ -151,7 +151,7 @@ model PlatformSettings {
   maintenanceMode       Boolean  @default(false) @map("maintenance_mode")
   allowNewRegistrations Boolean  @default(true) @map("allow_new_registrations")
   allowNewApplications  Boolean  @default(true) @map("allow_new_applications")
-  platformName          String   @default("Job Platform") @map("platform_name")
+  platformName          String   @default("Ready HR") @map("platform_name")
   supportEmail          String?  @map("support_email")
   supportPhone          String?  @map("support_phone")
   updatedAt             DateTime @updatedAt @map("updated_at")

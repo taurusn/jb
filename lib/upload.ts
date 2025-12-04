@@ -177,7 +177,7 @@ export async function uploadFile(
     // Use Cloudinary if configured (Priority #2)
     if (useCloudinary) {
       console.log('☁️ Uploading to Cloudinary...');
-      const cloudFolder = `job-platform/${subfolder || type}`;
+      const cloudFolder = `ready-hr/${subfolder || type}`;
       const result = await uploadToCloudinary(file, cloudFolder);
 
       if (result.success && result.url) {

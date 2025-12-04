@@ -38,7 +38,7 @@ export default function ThankYouPage() {
 
     if (navigator.share) {
       navigator.share({
-        title: 'Job Platform',
+        title: 'Ready HR',
         text: shareText,
         url: shareUrl,
       }).catch(() => {

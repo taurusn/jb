@@ -1,4 +1,4 @@
-# Mobile Optimizations - Job Platform
+# Mobile Optimizations - Ready HR
 
 ## Overview
 Comprehensive mobile-responsive improvements for the entire job recruitment platform, optimized for mobile devices (320px - 768px) with a mobile-first approach.

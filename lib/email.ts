@@ -69,7 +69,7 @@ export async function sendCandidateInvitation(
   }
 
   try {
-    const emailFrom = process.env.EMAIL_FROM || 'Job Platform <onboarding@resend.dev>';
+    const emailFrom = process.env.EMAIL_FROM || 'Ready HR <onboarding@resend.dev>';
     const formattedDate = formatDateForEmail(data.meetingDate);
 
     const result = await resend.emails.send({
@@ -91,7 +91,7 @@ export async function sendCandidateInvitation(
                   <!-- Logo/Header -->
                   <div style="text-align: center; margin-bottom: 40px;">
                     <div style="display: inline-block; width: 60px; height: 60px; background-color: #FEE715; border-radius: 12px; text-align: center; line-height: 60px; font-size: 32px; font-weight: bold; color: #101820; margin-bottom: 16px;">
-                      J
+                      R
                     </div>
                     <h1 style="margin: 0; font-size: 24px; color: #FEE715;">Interview Invitation</h1>
                   </div>
@@ -145,7 +145,7 @@ export async function sendCandidateInvitation(
                   <!-- Footer -->
                   <div style="text-align: center; padding-top: 24px; border-top: 1px solid rgba(254, 231, 21, 0.2);">
                     <p style="font-size: 14px; color: #9CA3AF; margin: 0 0 8px 0;">
-                      This interview was scheduled through Job Platform
+                      This interview was scheduled through Ready HR
                     </p>
                     <p style="font-size: 12px; color: #6B7280; margin: 0;">
                       If you have any questions, please contact ${data.companyName} directly.
@@ -190,7 +190,7 @@ export async function sendEmployerInvitation(
   }
 
   try {
-    const emailFrom = process.env.EMAIL_FROM || 'Job Platform <onboarding@resend.dev>';
+    const emailFrom = process.env.EMAIL_FROM || 'Ready HR <onboarding@resend.dev>';
     const formattedDate = formatDateForEmail(data.meetingDate);
 
     const result = await resend.emails.send({
@@ -212,7 +212,7 @@ export async function sendEmployerInvitation(
                   <!-- Logo/Header -->
                   <div style="text-align: center; margin-bottom: 40px;">
                     <div style="display: inline-block; width: 60px; height: 60px; background-color: #FEE715; border-radius: 12px; text-align: center; line-height: 60px; font-size: 32px; font-weight: bold; color: #101820; margin-bottom: 16px;">
-                      J
+                      R
                     </div>
                     <h1 style="margin: 0; font-size: 24px; color: #FEE715;">Interview Confirmed</h1>
                   </div>
@@ -262,7 +262,7 @@ export async function sendEmployerInvitation(
                   <!-- Footer -->
                   <div style="text-align: center; padding-top: 24px; border-top: 1px solid rgba(254, 231, 21, 0.2);">
                     <p style="font-size: 14px; color: #9CA3AF; margin: 0 0 8px 0;">
-                      This interview was scheduled through Job Platform
+                      This interview was scheduled through Ready HR
                     </p>
                     <p style="font-size: 12px; color: #6B7280; margin: 0;">
                       Automated interview coordination service

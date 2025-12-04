@@ -1,7 +1,7 @@
 import { ImageResponse } from 'next/og';
 
 export const runtime = 'edge';
-export const alt = 'Job Platform - Land Your Next Opportunity';
+export const alt = 'Ready HR - Land Your Next Opportunity';
 export const size = {
   width: 1200,
   height: 630,
@@ -56,7 +56,7 @@ export default async function Image() {
               color: '#101820',
             }}
           >
-            J
+            R
           </span>
         </div>
 

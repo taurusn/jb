@@ -1028,7 +1028,7 @@ export default function HomePage() {
       {/* Footer */}
       <footer className="py-8 sm:py-10 lg:py-12 px-3 sm:px-4 border-t border-dark-300">
         <div className="max-w-7xl mx-auto text-center text-gray-400">
-          <p className="text-xs sm:text-sm">&copy; 2025 Job Platform. All rights reserved.</p>
+          <p className="text-xs sm:text-sm">&copy; 2025 Ready HR. All rights reserved.</p>
         </div>
       </footer>
     </div>
